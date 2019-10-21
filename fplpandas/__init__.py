@@ -215,7 +215,7 @@ class FPLPandas:
 
 
 # Extension methods for FPL. These are necessary because FPL does not expose all available data.
-async def fpl_get_user_team(self, user_id: str) -> List[pd.DataFrame]:
+async def __fpl_get_user_team(self, user_id: str) -> List[pd.DataFrame]:
     """Gets current team, the chips and the transfer info of the logged in user. Requires the user to have
     logged in using ``fpl.login()``.
 
@@ -241,4 +241,4 @@ async def fpl_get_user_team(self, user_id: str) -> List[pd.DataFrame]:
     return response
 
 
-FPL.get_user_team = fpl_get_user_team
+FPL.get_user_team = __fpl_get_user_team
