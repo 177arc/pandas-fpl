@@ -7,6 +7,7 @@ from concurrent.futures import ThreadPoolExecutor
 from fpl.utils import fetch, logged_in
 from fpl.constants import API_URLS
 
+
 class FPLPandas:
     """
     This class is a wrapper for the FPL library: https://github.com/amosbastian/fpl It converts the JSON output to pandas data frames.
@@ -70,7 +71,6 @@ class FPLPandas:
 
             return await func(fpl)
 
-
     def __call_api(self, func, requires_login: bool = False) -> dict:
         """ Calls the given FPL API function synchronously.
 
@@ -82,11 +82,10 @@ class FPLPandas:
         """
         return self.__aio_pool.submit(self.__aio_loop.run_until_complete, self.__call_api_async(func, requires_login)).result()
 
-
     def set_cred(self, user_id: int, email: str, password: str) -> None:
         """ Sets the credentials to use when accessing user specific data. This method does not trigger a login call.
         Args:
-            user_id: The FPL user id. Only required for protected info such as user team. You can get the user id by
+            user_id: The FPL user ID. Only required for protected info such as user team. You can get the user id by
             selecting the Points tab on the FPL website and then extracting it from the browser URL like this:
             https://fantasy.premierleague.com/entry/{user_id}/event/6
             email: The email address used to log in to the FPL web site. Only required for protected info such as user team.
@@ -95,7 +94,6 @@ class FPLPandas:
         self.__user_id = user_id
         self.__email = email
         self.__password = password
-
 
     def get_teams(self, team_ids: List[int] = None) -> pd.DataFrame:
         """Returns either a list of *all* teams, or a list of teams with IDs in
@@ -111,7 +109,6 @@ class FPLPandas:
         """
         json_data = self.__call_api(lambda fpl: fpl.get_teams(team_ids, return_json=True))
         return pd.DataFrame.from_records(json_data, index=['id'])
-
 
     def get_player(self, player_id: int) -> List[pd.DataFrame]:
         """Returns the player with the given ``player_id`` as a data frame and his associated data.
@@ -130,6 +127,7 @@ class FPLPandas:
         Raises:
             ValueError: Player with ``player_id`` not found
         """
+
         def convert_player_df(json_data: dict, player_id: int, element: str, index: str) -> pd.DataFrame:
             player_df = pd.DataFrame.from_records(json_data[element])
             player_df['player_id'] = player_id
@@ -138,10 +136,9 @@ class FPLPandas:
 
         json_data = self.__call_api(lambda fpl: fpl.get_player(player_id, players=None, include_summary=True, return_json=True))
         return [pd.DataFrame.from_records([json_data], index=['id']).rename(index={'id': 'player_id'}),
-            convert_player_df(json_data, player_id, 'history_past', 'season_name'),
-            convert_player_df(json_data, player_id, 'history', 'fixture'),
-            convert_player_df(json_data, player_id, 'fixtures', 'event')]
-
+                convert_player_df(json_data, player_id, 'history_past', 'season_name'),
+                convert_player_df(json_data, player_id, 'history', 'fixture'),
+                convert_player_df(json_data, player_id, 'fixtures', 'event')]
 
     def get_players(self, player_ids: List[int] = None) -> List[pd.DataFrame]:
         """Returns either a list of *all' players, or a list of players whose
@@ -160,7 +157,8 @@ class FPLPandas:
             3: The stats for the completed games as a pandas data frame indexed by ``player_id``, ``fixture``
             4: The data for the upcoming fixtures as a pandas data frame indexed by ``player_id``, ``event``
         """
-        def convert_players_df(json_data: List[dict], element: str, index: str) -> pd.DataFrame:
+
+        def convert_players_df(json_data: dict, element: str, index: str) -> pd.DataFrame:
             players_df = pd.DataFrame()
             for player in json_data:
                 player_df = pd.DataFrame.from_records(player[element])
@@ -171,10 +169,9 @@ class FPLPandas:
 
         json_data = self.__call_api(lambda fpl: fpl.get_players(player_ids, include_summary=True, return_json=True))
         return [pd.DataFrame.from_records(json_data, index=['id'], exclude=['history_past', 'history', 'fixtures']).rename(index={'id': 'player_id'}),
-            convert_players_df(json_data, 'history_past', 'season_name'),
-            convert_players_df(json_data, 'history', 'fixture'),
-            convert_players_df(json_data, 'fixtures', 'event')]
-
+                convert_players_df(json_data, 'history_past', 'season_name'),
+                convert_players_df(json_data, 'history', 'fixture'),
+                convert_players_df(json_data, 'fixtures', 'event')]
 
     def get_fixtures(self) -> pd.DataFrame:
         """Returns a list of *all* fixtures as data frame.
@@ -187,9 +184,8 @@ class FPLPandas:
             All fixtures of the season as a pandas data frame.
         """
 
-        json_data = self.__call_api(lambda fpl: fpl.get_fixtures(return_json=True));
+        json_data = self.__call_api(lambda fpl: fpl.get_fixtures(return_json=True))
         return pd.DataFrame.from_records(json_data, index=['id'])
-
 
     def get_user_team(self, user_id: int = None):
         """ Returns information about the players in the current team, the chips and transfer info of the user with
@@ -202,6 +198,7 @@ class FPLPandas:
         Returns:
             The team, chips, transfer info as a pandas data frame.
         """
+
         async def get_user_team_async(fpl: FPL, user_id: int = None):
             if user_id is None:
                 user_id = self.__user_id
@@ -211,7 +208,7 @@ class FPLPandas:
 
             return await fpl.get_user_team(user_id)
 
-        json_data = self.__call_api(lambda fpl: get_user_team_async(fpl, user_id), requires_login=True);
+        json_data = self.__call_api(lambda fpl: get_user_team_async(fpl, user_id), requires_login=True)
         return [pd.DataFrame.from_records(json_data['picks'], index=['element']),
                 pd.DataFrame.from_records(json_data['chips']),
                 pd.DataFrame.from_records([json_data['transfers']])]
@@ -242,5 +239,6 @@ async def fpl_get_user_team(self, user_id: str) -> List[pd.DataFrame]:
         raise ValueError("User ID does not match provided email address!")
 
     return response
+
 
 FPL.get_user_team = fpl_get_user_team
