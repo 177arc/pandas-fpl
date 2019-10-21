@@ -1,0 +1,882 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.7.1" />
+<title>fplpandas API documentation</title>
+<meta name="description" content="" />
+<link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
+<link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" rel="stylesheet">
+<style>.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{font-weight:bold}#index h4 + ul{margin-bottom:.6em}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>fplpandas</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">from fpl import FPL
+import aiohttp
+import pandas as pd
+from typing import List
+import asyncio
+from concurrent.futures import ThreadPoolExecutor
+from fpl.utils import fetch, logged_in
+from fpl.constants import API_URLS
+
+class FPLPandas:
+    &#34;&#34;&#34;
+    This class is a wrapper for the FPL library: https://github.com/amosbastian/fpl It converts the JSON output to pandas data frames.
+    It also provides a synchronous layer over the asynchronous library in order to reduce the requirements for Jupyter kernel. Otherwise iPython &gt;= 7.0
+    (see https://stackoverflow.com/questions/47518874/how-do-i-run-python-asyncio-code-in-a-jupyter-notebook)
+    and ipykernel &gt;= 5.0.1  (see https://github.com/ipython/ipykernel/issues/356) are required.
+    &#34;&#34;&#34;
+    __aio_pool: ThreadPoolExecutor
+    __aio_loop: object
+    __user_id: int
+    __email: str
+    __password: str
+    __fpl: FPL
+
+    def __init__(self, user_id: int = None, email: str = None, password: str = None, fpl: FPL = None):
+        &#34;&#34;&#34;
+        Create a new instance of this class and initiates a thread for async execution.
+
+        Args:
+            user_id: The FPL user id. Only required for protected info such as user team. You can get the user id by
+            selecting the Points tab on the FPL website and then extracting it from the browser URL like this:
+            https://fantasy.premierleague.com/entry/{user_id}/event/6
+            email: The email address used to log in to the FPL web site. Only required for protected info such as user team.
+            password: The password used to log in to the FPL web site. Only required for protected info such as user team.
+            fpl: The FPL instance to use. This particular useful for injecting a mock instance for automated testing.
+            If not set, an FPL instance will be created.
+        &#34;&#34;&#34;
+
+        self.set_cred(user_id, email, password)
+        self.__fpl = fpl
+
+        self.__aio_pool = ThreadPoolExecutor(1)
+        self.__aio_loop = asyncio.new_event_loop()
+        self.__aio_pool.submit(asyncio.set_event_loop, self.__aio_loop).result()
+
+    def __del__(self):
+        if not self.__aio_loop is None:
+            self.__aio_loop.close()
+
+    async def __call_api_async(self, func, requires_login: bool = False) -&gt; dict:
+        &#34;&#34;&#34; Calls the given FPL API function asynchronously.
+
+        Args:
+            func: The API function to execute.
+            requires_login: Whether the call requires authentication.
+
+        Returns:
+            The Future of the passed function.
+        &#34;&#34;&#34;
+        if requires_login and self.__email is None:
+            raise ValueError(&#34;Email not provided. For functions that require login, the email address is mandatory. Please set the email address in the constructor. &#34;)
+
+        if requires_login and self.__password is None:
+            raise ValueError(&#34;Password not provided. For functions that require login, the password is mandatory. Please set the password in the constructor.&#34;)
+
+        async with aiohttp.ClientSession() as session:
+            fpl = FPL(session) if self.__fpl is None else self.__fpl
+
+            if requires_login:
+                await fpl.login(self.__email, self.__password)
+
+            return await func(fpl)
+
+
+    def __call_api(self, func, requires_login: bool = False) -&gt; dict:
+        &#34;&#34;&#34; Calls the given FPL API function synchronously.
+
+        Args:
+            func: The API function to execute.
+
+        Returns:
+            The result of the passed function.
+        &#34;&#34;&#34;
+        return self.__aio_pool.submit(self.__aio_loop.run_until_complete, self.__call_api_async(func, requires_login)).result()
+
+
+    def set_cred(self, user_id: int, email: str, password: str) -&gt; None:
+        &#34;&#34;&#34; Sets the credentials to use when accessing user specific data. This method does not trigger a login call.
+        Args:
+            user_id: The FPL user id. Only required for protected info such as user team. You can get the user id by
+            selecting the Points tab on the FPL website and then extracting it from the browser URL like this:
+            https://fantasy.premierleague.com/entry/{user_id}/event/6
+            email: The email address used to log in to the FPL web site. Only required for protected info such as user team.
+            password: The password used to log in to the FPL web site. Only required for protected info such as user team.
+        &#34;&#34;&#34;
+        self.__user_id = user_id
+        self.__email = email
+        self.__password = password
+
+
+    def get_teams(self, team_ids: List[int] = None) -&gt; pd.DataFrame:
+        &#34;&#34;&#34;Returns either a list of *all* teams, or a list of teams with IDs in
+        the optional ``team_ids`` list.
+
+        Information is taken from:
+            https://fantasy.premierleague.com/api/bootstrap-static/
+
+        Args:
+            team_ids: (optional) List containing the IDs of teams. If not set a list of *all* teams will be returned.
+        Returns:
+            The teams as a pandas data frame.
+        &#34;&#34;&#34;
+        json_data = self.__call_api(lambda fpl: fpl.get_teams(team_ids, return_json=True))
+        return pd.DataFrame.from_records(json_data, index=[&#39;id&#39;])
+
+
+    def get_player(self, player_id: int) -&gt; List[pd.DataFrame]:
+        &#34;&#34;&#34;Returns the player with the given ``player_id`` as a data frame and his associated data.
+
+        Information is taken from:
+            https://fantasy.premierleague.com/api/bootstrap-static/
+            https://fantasy.premierleague.com/api/element-summary/1/ (optional)
+
+        Args:
+            player_id: A player&#39;s ID.
+        Returns:
+            1: The player data as a pandas data frame with one row indexed by ``player_id``.
+            2: The summary stats for the past seasons s a pandas data frame indexed by ``player_id``, ``season_name``.
+            3: The stats for the completed games as a pandas data frame indexed by ``player_id``, ``fixture``
+            4: The data for the upcoming fixtures as a pandas data frame indexed by ``player_id``, ``event``
+        Raises:
+            ValueError: Player with ``player_id`` not found
+        &#34;&#34;&#34;
+        def convert_player_df(json_data: dict, player_id: int, element: str, index: str) -&gt; pd.DataFrame:
+            player_df = pd.DataFrame.from_records(json_data[element])
+            player_df[&#39;player_id&#39;] = player_id
+
+            return player_df.set_index([&#39;player_id&#39;, index])
+
+        json_data = self.__call_api(lambda fpl: fpl.get_player(player_id, players=None, include_summary=True, return_json=True))
+        return [pd.DataFrame.from_records([json_data], index=[&#39;id&#39;]).rename(index={&#39;id&#39;: &#39;player_id&#39;}),
+            convert_player_df(json_data, player_id, &#39;history_past&#39;, &#39;season_name&#39;),
+            convert_player_df(json_data, player_id, &#39;history&#39;, &#39;fixture&#39;),
+            convert_player_df(json_data, player_id, &#39;fixtures&#39;, &#39;event&#39;)]
+
+
+    def get_players(self, player_ids: List[int] = None) -&gt; List[pd.DataFrame]:
+        &#34;&#34;&#34;Returns either a list of *all&#39; players, or a list of players whose
+        IDs are in the given ``player_ids`` list as a data frame indexed by  indexed by ``player_id`` and their associated data.
+
+        Information is taken from:
+            https://fantasy.premierleague.com/api/bootstrap-static/
+            https://fantasy.premierleague.com/api/element-summary/{player_id}/
+
+        Args:
+            player_ids: (optional) A list of player IDs
+            if ``True``.
+        Returns:
+            1: The team players as a pandas data frame indexed by ``player_id``.
+            2: The summary stats for the past seasons s a pandas data frame indexed by ``player_id``, ``season_name``.
+            3: The stats for the completed games as a pandas data frame indexed by ``player_id``, ``fixture``
+            4: The data for the upcoming fixtures as a pandas data frame indexed by ``player_id``, ``event``
+        &#34;&#34;&#34;
+        def convert_players_df(json_data: List[dict], element: str, index: str) -&gt; pd.DataFrame:
+            players_df = pd.DataFrame()
+            for player in json_data:
+                player_df = pd.DataFrame.from_records(player[element])
+                player_df[&#39;player_id&#39;] = player[&#39;id&#39;]
+                players_df = pd.concat([players_df, player_df], sort=False)
+
+            return players_df.set_index([&#39;player_id&#39;, index])
+
+        json_data = self.__call_api(lambda fpl: fpl.get_players(player_ids, include_summary=True, return_json=True))
+        return [pd.DataFrame.from_records(json_data, index=[&#39;id&#39;], exclude=[&#39;history_past&#39;, &#39;history&#39;, &#39;fixtures&#39;]).rename(index={&#39;id&#39;: &#39;player_id&#39;}),
+            convert_players_df(json_data, &#39;history_past&#39;, &#39;season_name&#39;),
+            convert_players_df(json_data, &#39;history&#39;, &#39;fixture&#39;),
+            convert_players_df(json_data, &#39;fixtures&#39;, &#39;event&#39;)]
+
+
+    def get_fixtures(self) -&gt; pd.DataFrame:
+        &#34;&#34;&#34;Returns a list of *all* fixtures as data frame.
+
+        Information is taken from e.g.:
+            https://fantasy.premierleague.com/api/fixtures/
+            https://fantasy.premierleague.com/api/fixtures/?event=1
+
+        Returns:
+            All fixtures of the season as a pandas data frame.
+        &#34;&#34;&#34;
+
+        json_data = self.__call_api(lambda fpl: fpl.get_fixtures(return_json=True));
+        return pd.DataFrame.from_records(json_data, index=[&#39;id&#39;])
+
+
+    def get_user_team(self, user_id: int = None):
+        &#34;&#34;&#34; Returns information about the players in the current team, the chips and transfer info of the user with
+        the given user ID. This method requires that a valid email and password are set using the constructor.
+
+        Args:
+            user_id: The user ID for which to get the team information. If not provided, it defaults to the user ID that
+            was set in the constructor.
+
+        Returns:
+            The team, chips, transfer info as a pandas data frame.
+        &#34;&#34;&#34;
+        async def get_user_team_async(fpl: FPL, user_id: int = None):
+            if user_id is None:
+                user_id = self.__user_id
+
+            if user_id is None:
+                raise ValueError(&#39;No user ID was specified. Please provide a user ID.&#39;)
+
+            return await fpl.get_user_team(user_id)
+
+        json_data = self.__call_api(lambda fpl: get_user_team_async(fpl, user_id), requires_login=True);
+        return [pd.DataFrame.from_records(json_data[&#39;picks&#39;], index=[&#39;element&#39;]),
+                pd.DataFrame.from_records(json_data[&#39;chips&#39;]),
+                pd.DataFrame.from_records([json_data[&#39;transfers&#39;]])]
+
+
+# Extension methods for FPL. These are necessary because FPL does not expose all available data.
+async def fpl_get_user_team(self, user_id: str) -&gt; List[pd.DataFrame]:
+    &#34;&#34;&#34;Gets current team, the chips and the transfer info of the logged in user. Requires the user to have
+    logged in using ``fpl.login()``.
+
+    Information is taken from:
+        https://fantasy.premierleague.com/api/my-team/91928/
+
+    Args:
+        user_id: The user ID for which to get the team information. If not provided, it defaults to the user ID that
+        was set in the constructor.
+
+    Returns:
+        Current team, the chips and the transfer info as data frames.
+    &#34;&#34;&#34;
+    if not logged_in(self.session):
+        raise Exception(&#34;User must be logged in.&#34;)
+
+    response = await fetch(
+        self.session, API_URLS[&#34;user_team&#34;].format(user_id))
+
+    if response == {&#34;details&#34;: &#34;You cannot view this entry&#34;}:
+        raise ValueError(&#34;User ID does not match provided email address!&#34;)
+
+    return response
+
+FPL.get_user_team = fpl_get_user_team</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="fplpandas.fpl_get_user_team"><code class="name flex">
+<span>async def <span class="ident">fpl_get_user_team</span></span>(<span>self, user_id)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Gets current team, the chips and the transfer info of the logged in user. Requires the user to have
+logged in using <code>fpl.login()</code>.</p>
+<p>Information is taken from:
+<a href="https://fantasy.premierleague.com/api/my-team/91928/">https://fantasy.premierleague.com/api/my-team/91928/</a></p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>user_id</code></strong></dt>
+<dd>The user ID for which to get the team information. If not provided, it defaults to the user ID that</dd>
+</dl>
+<p>was set in the constructor.</p>
+<h2 id="returns">Returns</h2>
+<p>Current team, the chips and the transfer info as data frames.</p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def fpl_get_user_team(self, user_id: str) -&gt; List[pd.DataFrame]:
+    &#34;&#34;&#34;Gets current team, the chips and the transfer info of the logged in user. Requires the user to have
+    logged in using ``fpl.login()``.
+
+    Information is taken from:
+        https://fantasy.premierleague.com/api/my-team/91928/
+
+    Args:
+        user_id: The user ID for which to get the team information. If not provided, it defaults to the user ID that
+        was set in the constructor.
+
+    Returns:
+        Current team, the chips and the transfer info as data frames.
+    &#34;&#34;&#34;
+    if not logged_in(self.session):
+        raise Exception(&#34;User must be logged in.&#34;)
+
+    response = await fetch(
+        self.session, API_URLS[&#34;user_team&#34;].format(user_id))
+
+    if response == {&#34;details&#34;: &#34;You cannot view this entry&#34;}:
+        raise ValueError(&#34;User ID does not match provided email address!&#34;)
+
+    return response</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="fplpandas.FPLPandas"><code class="flex name class">
+<span>class <span class="ident">FPLPandas</span></span>
+<span>(</span><span>user_id=None, email=None, password=None, fpl=None)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>This class is a wrapper for the FPL library: <a href="https://github.com/amosbastian/fpl">https://github.com/amosbastian/fpl</a> It converts the JSON output to pandas data frames.
+It also provides a synchronous layer over the asynchronous library in order to reduce the requirements for Jupyter kernel. Otherwise iPython &gt;= 7.0
+(see <a href="https://stackoverflow.com/questions/47518874/how-do-i-run-python-asyncio-code-in-a-jupyter-notebook">https://stackoverflow.com/questions/47518874/how-do-i-run-python-asyncio-code-in-a-jupyter-notebook</a>)
+and ipykernel &gt;= 5.0.1
+(see <a href="https://github.com/ipython/ipykernel/issues/356">https://github.com/ipython/ipykernel/issues/356</a>) are required.</p>
+<p>Create a new instance of this class and initiates a thread for async execution.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>user_id</code></strong></dt>
+<dd>The FPL user id. Only required for protected info such as user team. You can get the user id by</dd>
+<dt>selecting the Points tab on the FPL website and then extracting it from the browser URL like this:</dt>
+<dt><a href="https://fantasy.premierleague.com/entry/{user_id}/event/6">https://fantasy.premierleague.com/entry/{user_id}/event/6</a></dt>
+<dt><strong><code>email</code></strong></dt>
+<dd>The email address used to log in to the FPL web site. Only required for protected info such as user team.</dd>
+<dt><strong><code>password</code></strong></dt>
+<dd>The password used to log in to the FPL web site. Only required for protected info such as user team.</dd>
+<dt><strong><code>fpl</code></strong></dt>
+<dd>The FPL instance to use. This particular useful for injecting a mock instance for automated testing.</dd>
+</dl>
+<p>If not set, an FPL instance will be created.</p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class FPLPandas:
+    &#34;&#34;&#34;
+    This class is a wrapper for the FPL library: https://github.com/amosbastian/fpl It converts the JSON output to pandas data frames.
+    It also provides a synchronous layer over the asynchronous library in order to reduce the requirements for Jupyter kernel. Otherwise iPython &gt;= 7.0
+    (see https://stackoverflow.com/questions/47518874/how-do-i-run-python-asyncio-code-in-a-jupyter-notebook)
+    and ipykernel &gt;= 5.0.1  (see https://github.com/ipython/ipykernel/issues/356) are required.
+    &#34;&#34;&#34;
+    __aio_pool: ThreadPoolExecutor
+    __aio_loop: object
+    __user_id: int
+    __email: str
+    __password: str
+    __fpl: FPL
+
+    def __init__(self, user_id: int = None, email: str = None, password: str = None, fpl: FPL = None):
+        &#34;&#34;&#34;
+        Create a new instance of this class and initiates a thread for async execution.
+
+        Args:
+            user_id: The FPL user id. Only required for protected info such as user team. You can get the user id by
+            selecting the Points tab on the FPL website and then extracting it from the browser URL like this:
+            https://fantasy.premierleague.com/entry/{user_id}/event/6
+            email: The email address used to log in to the FPL web site. Only required for protected info such as user team.
+            password: The password used to log in to the FPL web site. Only required for protected info such as user team.
+            fpl: The FPL instance to use. This particular useful for injecting a mock instance for automated testing.
+            If not set, an FPL instance will be created.
+        &#34;&#34;&#34;
+
+        self.set_cred(user_id, email, password)
+        self.__fpl = fpl
+
+        self.__aio_pool = ThreadPoolExecutor(1)
+        self.__aio_loop = asyncio.new_event_loop()
+        self.__aio_pool.submit(asyncio.set_event_loop, self.__aio_loop).result()
+
+    def __del__(self):
+        if not self.__aio_loop is None:
+            self.__aio_loop.close()
+
+    async def __call_api_async(self, func, requires_login: bool = False) -&gt; dict:
+        &#34;&#34;&#34; Calls the given FPL API function asynchronously.
+
+        Args:
+            func: The API function to execute.
+            requires_login: Whether the call requires authentication.
+
+        Returns:
+            The Future of the passed function.
+        &#34;&#34;&#34;
+        if requires_login and self.__email is None:
+            raise ValueError(&#34;Email not provided. For functions that require login, the email address is mandatory. Please set the email address in the constructor. &#34;)
+
+        if requires_login and self.__password is None:
+            raise ValueError(&#34;Password not provided. For functions that require login, the password is mandatory. Please set the password in the constructor.&#34;)
+
+        async with aiohttp.ClientSession() as session:
+            fpl = FPL(session) if self.__fpl is None else self.__fpl
+
+            if requires_login:
+                await fpl.login(self.__email, self.__password)
+
+            return await func(fpl)
+
+
+    def __call_api(self, func, requires_login: bool = False) -&gt; dict:
+        &#34;&#34;&#34; Calls the given FPL API function synchronously.
+
+        Args:
+            func: The API function to execute.
+
+        Returns:
+            The result of the passed function.
+        &#34;&#34;&#34;
+        return self.__aio_pool.submit(self.__aio_loop.run_until_complete, self.__call_api_async(func, requires_login)).result()
+
+
+    def set_cred(self, user_id: int, email: str, password: str) -&gt; None:
+        &#34;&#34;&#34; Sets the credentials to use when accessing user specific data. This method does not trigger a login call.
+        Args:
+            user_id: The FPL user id. Only required for protected info such as user team. You can get the user id by
+            selecting the Points tab on the FPL website and then extracting it from the browser URL like this:
+            https://fantasy.premierleague.com/entry/{user_id}/event/6
+            email: The email address used to log in to the FPL web site. Only required for protected info such as user team.
+            password: The password used to log in to the FPL web site. Only required for protected info such as user team.
+        &#34;&#34;&#34;
+        self.__user_id = user_id
+        self.__email = email
+        self.__password = password
+
+
+    def get_teams(self, team_ids: List[int] = None) -&gt; pd.DataFrame:
+        &#34;&#34;&#34;Returns either a list of *all* teams, or a list of teams with IDs in
+        the optional ``team_ids`` list.
+
+        Information is taken from:
+            https://fantasy.premierleague.com/api/bootstrap-static/
+
+        Args:
+            team_ids: (optional) List containing the IDs of teams. If not set a list of *all* teams will be returned.
+        Returns:
+            The teams as a pandas data frame.
+        &#34;&#34;&#34;
+        json_data = self.__call_api(lambda fpl: fpl.get_teams(team_ids, return_json=True))
+        return pd.DataFrame.from_records(json_data, index=[&#39;id&#39;])
+
+
+    def get_player(self, player_id: int) -&gt; List[pd.DataFrame]:
+        &#34;&#34;&#34;Returns the player with the given ``player_id`` as a data frame and his associated data.
+
+        Information is taken from:
+            https://fantasy.premierleague.com/api/bootstrap-static/
+            https://fantasy.premierleague.com/api/element-summary/1/ (optional)
+
+        Args:
+            player_id: A player&#39;s ID.
+        Returns:
+            1: The player data as a pandas data frame with one row indexed by ``player_id``.
+            2: The summary stats for the past seasons s a pandas data frame indexed by ``player_id``, ``season_name``.
+            3: The stats for the completed games as a pandas data frame indexed by ``player_id``, ``fixture``
+            4: The data for the upcoming fixtures as a pandas data frame indexed by ``player_id``, ``event``
+        Raises:
+            ValueError: Player with ``player_id`` not found
+        &#34;&#34;&#34;
+        def convert_player_df(json_data: dict, player_id: int, element: str, index: str) -&gt; pd.DataFrame:
+            player_df = pd.DataFrame.from_records(json_data[element])
+            player_df[&#39;player_id&#39;] = player_id
+
+            return player_df.set_index([&#39;player_id&#39;, index])
+
+        json_data = self.__call_api(lambda fpl: fpl.get_player(player_id, players=None, include_summary=True, return_json=True))
+        return [pd.DataFrame.from_records([json_data], index=[&#39;id&#39;]).rename(index={&#39;id&#39;: &#39;player_id&#39;}),
+            convert_player_df(json_data, player_id, &#39;history_past&#39;, &#39;season_name&#39;),
+            convert_player_df(json_data, player_id, &#39;history&#39;, &#39;fixture&#39;),
+            convert_player_df(json_data, player_id, &#39;fixtures&#39;, &#39;event&#39;)]
+
+
+    def get_players(self, player_ids: List[int] = None) -&gt; List[pd.DataFrame]:
+        &#34;&#34;&#34;Returns either a list of *all&#39; players, or a list of players whose
+        IDs are in the given ``player_ids`` list as a data frame indexed by  indexed by ``player_id`` and their associated data.
+
+        Information is taken from:
+            https://fantasy.premierleague.com/api/bootstrap-static/
+            https://fantasy.premierleague.com/api/element-summary/{player_id}/
+
+        Args:
+            player_ids: (optional) A list of player IDs
+            if ``True``.
+        Returns:
+            1: The team players as a pandas data frame indexed by ``player_id``.
+            2: The summary stats for the past seasons s a pandas data frame indexed by ``player_id``, ``season_name``.
+            3: The stats for the completed games as a pandas data frame indexed by ``player_id``, ``fixture``
+            4: The data for the upcoming fixtures as a pandas data frame indexed by ``player_id``, ``event``
+        &#34;&#34;&#34;
+        def convert_players_df(json_data: List[dict], element: str, index: str) -&gt; pd.DataFrame:
+            players_df = pd.DataFrame()
+            for player in json_data:
+                player_df = pd.DataFrame.from_records(player[element])
+                player_df[&#39;player_id&#39;] = player[&#39;id&#39;]
+                players_df = pd.concat([players_df, player_df], sort=False)
+
+            return players_df.set_index([&#39;player_id&#39;, index])
+
+        json_data = self.__call_api(lambda fpl: fpl.get_players(player_ids, include_summary=True, return_json=True))
+        return [pd.DataFrame.from_records(json_data, index=[&#39;id&#39;], exclude=[&#39;history_past&#39;, &#39;history&#39;, &#39;fixtures&#39;]).rename(index={&#39;id&#39;: &#39;player_id&#39;}),
+            convert_players_df(json_data, &#39;history_past&#39;, &#39;season_name&#39;),
+            convert_players_df(json_data, &#39;history&#39;, &#39;fixture&#39;),
+            convert_players_df(json_data, &#39;fixtures&#39;, &#39;event&#39;)]
+
+
+    def get_fixtures(self) -&gt; pd.DataFrame:
+        &#34;&#34;&#34;Returns a list of *all* fixtures as data frame.
+
+        Information is taken from e.g.:
+            https://fantasy.premierleague.com/api/fixtures/
+            https://fantasy.premierleague.com/api/fixtures/?event=1
+
+        Returns:
+            All fixtures of the season as a pandas data frame.
+        &#34;&#34;&#34;
+
+        json_data = self.__call_api(lambda fpl: fpl.get_fixtures(return_json=True));
+        return pd.DataFrame.from_records(json_data, index=[&#39;id&#39;])
+
+
+    def get_user_team(self, user_id: int = None):
+        &#34;&#34;&#34; Returns information about the players in the current team, the chips and transfer info of the user with
+        the given user ID. This method requires that a valid email and password are set using the constructor.
+
+        Args:
+            user_id: The user ID for which to get the team information. If not provided, it defaults to the user ID that
+            was set in the constructor.
+
+        Returns:
+            The team, chips, transfer info as a pandas data frame.
+        &#34;&#34;&#34;
+        async def get_user_team_async(fpl: FPL, user_id: int = None):
+            if user_id is None:
+                user_id = self.__user_id
+
+            if user_id is None:
+                raise ValueError(&#39;No user ID was specified. Please provide a user ID.&#39;)
+
+            return await fpl.get_user_team(user_id)
+
+        json_data = self.__call_api(lambda fpl: get_user_team_async(fpl, user_id), requires_login=True);
+        return [pd.DataFrame.from_records(json_data[&#39;picks&#39;], index=[&#39;element&#39;]),
+                pd.DataFrame.from_records(json_data[&#39;chips&#39;]),
+                pd.DataFrame.from_records([json_data[&#39;transfers&#39;]])]</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="fplpandas.FPLPandas.get_fixtures"><code class="name flex">
+<span>def <span class="ident">get_fixtures</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Returns a list of <em>all</em> fixtures as data frame.</p>
+<p>Information is taken from e.g.:
+<a href="https://fantasy.premierleague.com/api/fixtures/">https://fantasy.premierleague.com/api/fixtures/</a>
+<a href="https://fantasy.premierleague.com/api/fixtures/?event=1">https://fantasy.premierleague.com/api/fixtures/?event=1</a></p>
+<h2 id="returns">Returns</h2>
+<p>All fixtures of the season as a pandas data frame.</p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_fixtures(self) -&gt; pd.DataFrame:
+    &#34;&#34;&#34;Returns a list of *all* fixtures as data frame.
+
+    Information is taken from e.g.:
+        https://fantasy.premierleague.com/api/fixtures/
+        https://fantasy.premierleague.com/api/fixtures/?event=1
+
+    Returns:
+        All fixtures of the season as a pandas data frame.
+    &#34;&#34;&#34;
+
+    json_data = self.__call_api(lambda fpl: fpl.get_fixtures(return_json=True));
+    return pd.DataFrame.from_records(json_data, index=[&#39;id&#39;])</code></pre>
+</details>
+</dd>
+<dt id="fplpandas.FPLPandas.get_player"><code class="name flex">
+<span>def <span class="ident">get_player</span></span>(<span>self, player_id)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Returns the player with the given <code>player_id</code> as a data frame and his associated data.</p>
+<p>Information is taken from:
+<a href="https://fantasy.premierleague.com/api/bootstrap-static/">https://fantasy.premierleague.com/api/bootstrap-static/</a>
+<a href="https://fantasy.premierleague.com/api/element-summary/1/">https://fantasy.premierleague.com/api/element-summary/1/</a> (optional)</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>player_id</code></strong></dt>
+<dd>A player's ID.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>1</code></strong></dt>
+<dd>The player data as a pandas data frame with one row indexed by <code>player_id</code>.</dd>
+<dt><strong><code>2</code></strong></dt>
+<dd>The summary stats for the past seasons s a pandas data frame indexed by <code>player_id</code>, <code>season_name</code>.</dd>
+<dt><strong><code>3</code></strong></dt>
+<dd>The stats for the completed games as a pandas data frame indexed by <code>player_id</code>, <code>fixture</code></dd>
+<dt><strong><code>4</code></strong></dt>
+<dd>The data for the upcoming fixtures as a pandas data frame indexed by <code>player_id</code>, <code>event</code></dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><strong><code>ValueError</code></strong></dt>
+<dd>Player with <code>player_id</code> not found</dd>
+</dl></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_player(self, player_id: int) -&gt; List[pd.DataFrame]:
+    &#34;&#34;&#34;Returns the player with the given ``player_id`` as a data frame and his associated data.
+
+    Information is taken from:
+        https://fantasy.premierleague.com/api/bootstrap-static/
+        https://fantasy.premierleague.com/api/element-summary/1/ (optional)
+
+    Args:
+        player_id: A player&#39;s ID.
+    Returns:
+        1: The player data as a pandas data frame with one row indexed by ``player_id``.
+        2: The summary stats for the past seasons s a pandas data frame indexed by ``player_id``, ``season_name``.
+        3: The stats for the completed games as a pandas data frame indexed by ``player_id``, ``fixture``
+        4: The data for the upcoming fixtures as a pandas data frame indexed by ``player_id``, ``event``
+    Raises:
+        ValueError: Player with ``player_id`` not found
+    &#34;&#34;&#34;
+    def convert_player_df(json_data: dict, player_id: int, element: str, index: str) -&gt; pd.DataFrame:
+        player_df = pd.DataFrame.from_records(json_data[element])
+        player_df[&#39;player_id&#39;] = player_id
+
+        return player_df.set_index([&#39;player_id&#39;, index])
+
+    json_data = self.__call_api(lambda fpl: fpl.get_player(player_id, players=None, include_summary=True, return_json=True))
+    return [pd.DataFrame.from_records([json_data], index=[&#39;id&#39;]).rename(index={&#39;id&#39;: &#39;player_id&#39;}),
+        convert_player_df(json_data, player_id, &#39;history_past&#39;, &#39;season_name&#39;),
+        convert_player_df(json_data, player_id, &#39;history&#39;, &#39;fixture&#39;),
+        convert_player_df(json_data, player_id, &#39;fixtures&#39;, &#39;event&#39;)]</code></pre>
+</details>
+</dd>
+<dt id="fplpandas.FPLPandas.get_players"><code class="name flex">
+<span>def <span class="ident">get_players</span></span>(<span>self, player_ids=None)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Returns either a list of *all' players, or a list of players whose
+IDs are in the given <code>player_ids</code> list as a data frame indexed by
+indexed by <code>player_id</code> and their associated data.</p>
+<p>Information is taken from:
+<a href="https://fantasy.premierleague.com/api/bootstrap-static/">https://fantasy.premierleague.com/api/bootstrap-static/</a>
+<a href="https://fantasy.premierleague.com/api/element-summary/{player_id}/">https://fantasy.premierleague.com/api/element-summary/{player_id}/</a></p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>player_ids</code></strong></dt>
+<dd>(optional) A list of player IDs</dd>
+</dl>
+<p>if <code>True</code>.</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>1</code></strong></dt>
+<dd>The team players as a pandas data frame indexed by <code>player_id</code>.</dd>
+<dt><strong><code>2</code></strong></dt>
+<dd>The summary stats for the past seasons s a pandas data frame indexed by <code>player_id</code>, <code>season_name</code>.</dd>
+<dt><strong><code>3</code></strong></dt>
+<dd>The stats for the completed games as a pandas data frame indexed by <code>player_id</code>, <code>fixture</code></dd>
+<dt><strong><code>4</code></strong></dt>
+<dd>The data for the upcoming fixtures as a pandas data frame indexed by <code>player_id</code>, <code>event</code></dd>
+</dl></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_players(self, player_ids: List[int] = None) -&gt; List[pd.DataFrame]:
+    &#34;&#34;&#34;Returns either a list of *all&#39; players, or a list of players whose
+    IDs are in the given ``player_ids`` list as a data frame indexed by  indexed by ``player_id`` and their associated data.
+
+    Information is taken from:
+        https://fantasy.premierleague.com/api/bootstrap-static/
+        https://fantasy.premierleague.com/api/element-summary/{player_id}/
+
+    Args:
+        player_ids: (optional) A list of player IDs
+        if ``True``.
+    Returns:
+        1: The team players as a pandas data frame indexed by ``player_id``.
+        2: The summary stats for the past seasons s a pandas data frame indexed by ``player_id``, ``season_name``.
+        3: The stats for the completed games as a pandas data frame indexed by ``player_id``, ``fixture``
+        4: The data for the upcoming fixtures as a pandas data frame indexed by ``player_id``, ``event``
+    &#34;&#34;&#34;
+    def convert_players_df(json_data: List[dict], element: str, index: str) -&gt; pd.DataFrame:
+        players_df = pd.DataFrame()
+        for player in json_data:
+            player_df = pd.DataFrame.from_records(player[element])
+            player_df[&#39;player_id&#39;] = player[&#39;id&#39;]
+            players_df = pd.concat([players_df, player_df], sort=False)
+
+        return players_df.set_index([&#39;player_id&#39;, index])
+
+    json_data = self.__call_api(lambda fpl: fpl.get_players(player_ids, include_summary=True, return_json=True))
+    return [pd.DataFrame.from_records(json_data, index=[&#39;id&#39;], exclude=[&#39;history_past&#39;, &#39;history&#39;, &#39;fixtures&#39;]).rename(index={&#39;id&#39;: &#39;player_id&#39;}),
+        convert_players_df(json_data, &#39;history_past&#39;, &#39;season_name&#39;),
+        convert_players_df(json_data, &#39;history&#39;, &#39;fixture&#39;),
+        convert_players_df(json_data, &#39;fixtures&#39;, &#39;event&#39;)]</code></pre>
+</details>
+</dd>
+<dt id="fplpandas.FPLPandas.get_teams"><code class="name flex">
+<span>def <span class="ident">get_teams</span></span>(<span>self, team_ids=None)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Returns either a list of <em>all</em> teams, or a list of teams with IDs in
+the optional <code>team_ids</code> list.</p>
+<p>Information is taken from:
+<a href="https://fantasy.premierleague.com/api/bootstrap-static/">https://fantasy.premierleague.com/api/bootstrap-static/</a></p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>team_ids</code></strong></dt>
+<dd>(optional) List containing the IDs of teams. If not set a list of <em>all</em> teams will be returned.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>The teams as a pandas data frame.</p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_teams(self, team_ids: List[int] = None) -&gt; pd.DataFrame:
+    &#34;&#34;&#34;Returns either a list of *all* teams, or a list of teams with IDs in
+    the optional ``team_ids`` list.
+
+    Information is taken from:
+        https://fantasy.premierleague.com/api/bootstrap-static/
+
+    Args:
+        team_ids: (optional) List containing the IDs of teams. If not set a list of *all* teams will be returned.
+    Returns:
+        The teams as a pandas data frame.
+    &#34;&#34;&#34;
+    json_data = self.__call_api(lambda fpl: fpl.get_teams(team_ids, return_json=True))
+    return pd.DataFrame.from_records(json_data, index=[&#39;id&#39;])</code></pre>
+</details>
+</dd>
+<dt id="fplpandas.FPLPandas.get_user_team"><code class="name flex">
+<span>def <span class="ident">get_user_team</span></span>(<span>self, user_id=None)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Returns information about the players in the current team, the chips and transfer info of the user with
+the given user ID. This method requires that a valid email and password are set using the constructor.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>user_id</code></strong></dt>
+<dd>The user ID for which to get the team information. If not provided, it defaults to the user ID that</dd>
+</dl>
+<p>was set in the constructor.</p>
+<h2 id="returns">Returns</h2>
+<p>The team, chips, transfer info as a pandas data frame.</p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_user_team(self, user_id: int = None):
+    &#34;&#34;&#34; Returns information about the players in the current team, the chips and transfer info of the user with
+    the given user ID. This method requires that a valid email and password are set using the constructor.
+
+    Args:
+        user_id: The user ID for which to get the team information. If not provided, it defaults to the user ID that
+        was set in the constructor.
+
+    Returns:
+        The team, chips, transfer info as a pandas data frame.
+    &#34;&#34;&#34;
+    async def get_user_team_async(fpl: FPL, user_id: int = None):
+        if user_id is None:
+            user_id = self.__user_id
+
+        if user_id is None:
+            raise ValueError(&#39;No user ID was specified. Please provide a user ID.&#39;)
+
+        return await fpl.get_user_team(user_id)
+
+    json_data = self.__call_api(lambda fpl: get_user_team_async(fpl, user_id), requires_login=True);
+    return [pd.DataFrame.from_records(json_data[&#39;picks&#39;], index=[&#39;element&#39;]),
+            pd.DataFrame.from_records(json_data[&#39;chips&#39;]),
+            pd.DataFrame.from_records([json_data[&#39;transfers&#39;]])]</code></pre>
+</details>
+</dd>
+<dt id="fplpandas.FPLPandas.set_cred"><code class="name flex">
+<span>def <span class="ident">set_cred</span></span>(<span>self, user_id, email, password)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Sets the credentials to use when accessing user specific data. This method does not trigger a login call.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>user_id</code></strong></dt>
+<dd>The FPL user id. Only required for protected info such as user team. You can get the user id by</dd>
+<dt>selecting the Points tab on the FPL website and then extracting it from the browser URL like this:</dt>
+<dt><a href="https://fantasy.premierleague.com/entry/{user_id}/event/6">https://fantasy.premierleague.com/entry/{user_id}/event/6</a></dt>
+<dt><strong><code>email</code></strong></dt>
+<dd>The email address used to log in to the FPL web site. Only required for protected info such as user team.</dd>
+<dt><strong><code>password</code></strong></dt>
+<dd>The password used to log in to the FPL web site. Only required for protected info such as user team.</dd>
+</dl></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_cred(self, user_id: int, email: str, password: str) -&gt; None:
+    &#34;&#34;&#34; Sets the credentials to use when accessing user specific data. This method does not trigger a login call.
+    Args:
+        user_id: The FPL user id. Only required for protected info such as user team. You can get the user id by
+        selecting the Points tab on the FPL website and then extracting it from the browser URL like this:
+        https://fantasy.premierleague.com/entry/{user_id}/event/6
+        email: The email address used to log in to the FPL web site. Only required for protected info such as user team.
+        password: The password used to log in to the FPL web site. Only required for protected info such as user team.
+    &#34;&#34;&#34;
+    self.__user_id = user_id
+    self.__email = email
+    self.__password = password</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="fplpandas.fpl_get_user_team" href="#fplpandas.fpl_get_user_team">fpl_get_user_team</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="fplpandas.FPLPandas" href="#fplpandas.FPLPandas">FPLPandas</a></code></h4>
+<ul class="two-column">
+<li><code><a title="fplpandas.FPLPandas.get_fixtures" href="#fplpandas.FPLPandas.get_fixtures">get_fixtures</a></code></li>
+<li><code><a title="fplpandas.FPLPandas.get_player" href="#fplpandas.FPLPandas.get_player">get_player</a></code></li>
+<li><code><a title="fplpandas.FPLPandas.get_players" href="#fplpandas.FPLPandas.get_players">get_players</a></code></li>
+<li><code><a title="fplpandas.FPLPandas.get_teams" href="#fplpandas.FPLPandas.get_teams">get_teams</a></code></li>
+<li><code><a title="fplpandas.FPLPandas.get_user_team" href="#fplpandas.FPLPandas.get_user_team">get_user_team</a></code></li>
+<li><code><a title="fplpandas.FPLPandas.set_cred" href="#fplpandas.FPLPandas.set_cred">set_cred</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.7.1</a>.</p>
+</footer>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad()</script>
+</body>
+</html>
