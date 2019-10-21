@@ -10,7 +10,7 @@ readme = (cwd / 'pipy.md').read_text()
 # This call to setup() does all the work
 setup(name='pandas-fpl',
         version='0.0.1',
-        description='Pandas wrapper for the FPL (Fantasy Premiere League) library: https://github.com/amosbastian/fpl',
+        description='Pandas wrapper for Fantasy Premier League API based on the FPL package: https://github.com/amosbastian/fpl',
         long_description=readme,
         long_description_content_type='text/markdown',
         url='https://github.com/177arc/pandas-fpl',
