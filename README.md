@@ -1,37 +1,33 @@
-## Welcome to GitHub Pages
+[![PyPi Downloads](https://pepy.tech/badge/pandas-fpl)](https://pepy.tech/project/pandas-fpl)
+[![PyPi Monthly Downloads](https://pepy.tech/badge/pandas-fpl/month)](https://pepy.tech/project/pandas-fpl/month)
+[![PyPi Version](https://badge.fury.io/py/pandas-fpl.svg)](https://pypi.org/project/pandas-fpl/)
+[![Python 3.6](https://img.shields.io/badge/python-3.6-blue.svg)](https://www.python.org/downloads/release/python-360/)
 
-You can use the [editor on GitHub](https://github.com/177arc/pandas-fpl/edit/master/README.md) to maintain and preview the content for your website in Markdown files.
+# Pandas wrapper for Fantasy Premier League API
 
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
+The `FPLPandas` class in this package uses the [FPL](https://github.com/amosbastian/fpl) library to retrieve data from the [Fantasy Premier League API](https://fantasy.premierleague.com/api/bootstrap-static/). It maps the results to the pandas data frames so that the data can be analysed interactively, e.g. in a Jupyter notebook.
 
-### Markdown
+[FPL](https://github.com/amosbastian/fpl) library is an asynchronous wrapper for the [Fantasy Premier League API](https://fantasy.premierleague.com/api/bootstrap-static/) But the Jupyter notebook work better with synchronous code, the methods exposed by the `FPLPandas` class are synchronous.
 
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
+## Installation
 
-```markdown
-Syntax highlighted code block
+### Using pip
 
-# Header 1
-## Header 2
-### Header 3
+You can install using the pip package manager by running
 
-- Bulleted
-- List
+    pip install pandas-fpl
 
-1. Numbered
-2. List
+### From source
 
-**Bold** and _Italic_ and `Code` text
+Download the source code by cloning the repository or by pressing ['Download ZIP'](https://github.com/177arc/pandas-fpl/archive/master.zip) on this page.
+Install by navigating to the proper directory and running
 
-[Link](url) and ![Image](src)
-```
+    python setup.py install
 
-For more details see [GitHub Flavored Markdown](https://guides.github.com/features/mastering-markdown/).
+## Usage
 
-### Jekyll Themes
+For usage guidance, see the [Usage Jupyter Notebook](https://nbviewer.jupyter.org/github/177arc/pandas-fpl/blob/master/usage.ipynb)
 
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/177arc/pandas-fpl/settings). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
+## Documentation
 
-### Support or Contact
-
-Having trouble with Pages? Check out our [documentation](https://help.github.com/categories/github-pages-basics/) or [contact support](https://github.com/contact) and we’ll help you sort it out.
+For the code documentation, please visit the documentation [Github Pages](https://177arc.github.io/pandas-fpl/docs/fplpandas/).
