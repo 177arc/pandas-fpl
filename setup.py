@@ -5,11 +5,11 @@ from setuptools import setup
 cwd = pathlib.Path(__file__).parent
 
 # The text of the README file
-readme = (cwd / 'pipy.md').read_text()
+readme = (cwd / 'README.md').read_text()
 
 # This call to setup() does all the work
 setup(name='pandas-fpl',
-        version='0.0.1',
+        version='0.1.0',
         description='Pandas wrapper for Fantasy Premier League API based on the FPL package: https://github.com/amosbastian/fpl',
         long_description=readme,
         long_description_content_type='text/markdown',
