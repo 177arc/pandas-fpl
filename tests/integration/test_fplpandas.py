@@ -45,15 +45,23 @@ class TestFplPandas(unittest.TestCase):
         self.assertTrue(fixtures.shape[0] >= 0)
 
     def test_get_user_team(self):
-        user_id = 6769616
         email = 'fpl@177arc.net'
-        log.info(f'Downloading team data for user {user_id} using account {email}...')
-        fpl = FPLPandas(user_id, email, 'TestMcTestFace')
+        log.info(f'Downloading team data for account {email}...')
+        fpl = FPLPandas(email, 'TestMcTestFace')
         user_team, chips, transfers = fpl.get_user_team()
-        log.info(f'Team data for user {user_id} downloaded.')
+        log.info(f'Team data downloaded.')
         self.assertTrue(user_team.shape[0] > 0)
         self.assertTrue(chips.shape[0] > 0)
         self.assertTrue(transfers.shape[0] > 0)
+
+    def test_get_user_info(self):
+        email = 'fpl@177arc.net'
+        log.info(f'Downloading user info for account {email}...')
+        fpl = FPLPandas(email, 'TestMcTestFace')
+        user_info = fpl.get_user_info()
+        log.info(f'User info downloaded.')
+        self.assertTrue(user_info.shape[0] > 0)
+
 
 if __name__ == '__main__':
     unittest.main()

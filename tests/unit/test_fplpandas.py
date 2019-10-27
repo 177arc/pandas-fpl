@@ -78,7 +78,7 @@ class TestFplPandas(unittest.TestCase):
                                  {'season_name': '2018/19', 'attr1': 'value21', 'attr2': 'value22', 'player_id': 1}]
         expected_history = [{'fixture': 1, 'attr1': 'value11', 'attr2': 'value12', 'player_id': 1},
                          {'fixture': 2, 'attr1': 'value21', 'attr2': 'value22', 'player_id': 1}]
-        expected_fixtures= [{'event': 1, 'attr1': 'value11', 'attr2': 'value12', 'player_id': 1},
+        expected_fixtures = [{'event': 1, 'attr1': 'value11', 'attr2': 'value12', 'player_id': 1},
                             {'event': 2, 'attr1': 'value21', 'attr2': 'value22', 'player_id': 1}]
 
         expected_player_df = pd.DataFrame.from_records([test_data], index=['id']).rename(index={'id': 'player_id'})
@@ -225,7 +225,7 @@ class TestFplPandas(unittest.TestCase):
                      'chips': [{'attr1': 'value11', 'attr2': 'value12'}],
                      'transfers': {'attr1': 'value11', 'attr2': 'value12'}}
 
-        expected_picks_df = pd.DataFrame.from_dict(test_data['picks']).set_index('element')
+        expected_picks_df = pd.DataFrame.from_dict(test_data['picks']).set_index('element').rename(index={'element': 'player_id'})
         expected_chips_df = pd.DataFrame.from_dict(test_data['chips'])
         expected_transfers_df = pd.DataFrame.from_dict([test_data['transfers']])
 
@@ -235,14 +235,18 @@ class TestFplPandas(unittest.TestCase):
             self.assertEqual(email, 'email')
             self.assertEqual(password, 'password')
 
+        async def mock_get_user_info():
+            return {'player': {'entry': '123'}}
+
         async def mock_get_user_team(user_id):
-            self.assertEqual(user_id, 123)
+            self.assertEqual(user_id, '123')
             return test_data
 
         fpl_mock.get_user_team = mock_get_user_team
+        fpl_mock.get_user_info = mock_get_user_info
         fpl_mock.login = mock_login
 
-        fpl = FPLPandas(123, 'email', 'password', fpl=fpl_mock)
+        fpl = FPLPandas('email', 'password', fpl=fpl_mock)
         actual_picks_df, actual_chips_df, actual_transfers_df = fpl.get_user_team()
 
         assert_frame_equal(expected_picks_df, actual_picks_df)
@@ -256,7 +260,7 @@ class TestFplPandas(unittest.TestCase):
                      'chips': [{'attr1': 'value11', 'attr2': 'value12'}],
                      'transfers': {'attr1': 'value11', 'attr2': 'value12'}}
 
-        expected_picks_df = pd.DataFrame.from_dict(test_data['picks']).set_index('element')
+        expected_picks_df = pd.DataFrame.from_dict(test_data['picks']).set_index('element').rename(index={'element': 'player_id'})
         expected_chips_df = pd.DataFrame.from_dict(test_data['chips'])
         expected_transfers_df = pd.DataFrame.from_dict([test_data['transfers']])
 
@@ -273,37 +277,46 @@ class TestFplPandas(unittest.TestCase):
         fpl_mock.get_user_team = mock_get_user_team
         fpl_mock.login = mock_login
 
-        fpl = FPLPandas(123, 'email', 'password', fpl=fpl_mock)
+        fpl = FPLPandas('email', 'password', fpl=fpl_mock)
         actual_picks_df, actual_chips_df, actual_transfers_df = fpl.get_user_team(456)
         assert_frame_equal(expected_picks_df, actual_picks_df)
         assert_frame_equal(expected_chips_df, actual_chips_df)
         assert_frame_equal(expected_transfers_df, actual_transfers_df)
 
-    def test_get_user_team_no_user_id(self):
-        fpl_mock = mock.MagicMock()
-
-        async def mock_login(email, password):
-            self.assertEqual(email, 'email')
-            self.assertEqual(password, 'password')
-
-        fpl_mock.login = mock_login
-        fpl = FPLPandas(None, 'email', 'password', fpl=fpl_mock)
-        with self.assertRaisesRegex(ValueError, 'user ID'):
-            fpl.get_user_team()
-
     def test_get_user_team_no_email(self):
         fpl_mock = mock.MagicMock()
 
-        fpl = FPLPandas(123, None, 'password', fpl=fpl_mock)
+        fpl = FPLPandas(None, 'password', fpl=fpl_mock)
         with self.assertRaisesRegex(ValueError, 'email'):
             fpl.get_user_team()
 
     def test_get_user_team_no_password(self):
         fpl_mock = mock.MagicMock()
 
-        fpl = FPLPandas(123, 'email', None, fpl=fpl_mock)
+        fpl = FPLPandas('email', None, fpl=fpl_mock)
         with self.assertRaisesRegex(ValueError, 'password'):
             fpl.get_user_team()
+
+    def test_get_user_info(self):
+        test_data = {'player': {'entry': '123'}}
+        expected_df = pd.DataFrame.from_dict([test_data['player']])
+
+        fpl_mock = mock.MagicMock()
+
+        async def mock_login(email, password):
+            self.assertEqual(email, 'email')
+            self.assertEqual(password, 'password')
+
+        async def mock_get_user_info():
+            return {'player': {'entry': '123'}}
+
+        fpl_mock.get_user_info = mock_get_user_info
+        fpl_mock.login = mock_login
+
+        fpl = FPLPandas('email', 'password', fpl=fpl_mock)
+        actual_df = fpl.get_user_info()
+
+        assert_frame_equal(expected_df, actual_df)
 
 
 if __name__ == '__main__':

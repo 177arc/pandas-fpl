@@ -15,30 +15,20 @@ class FPLPandas:
     (see https://stackoverflow.com/questions/47518874/how-do-i-run-python-asyncio-code-in-a-jupyter-notebook)
     and ipykernel >= 5.0.1  (see https://github.com/ipython/ipykernel/issues/356) are required.
     """
-    __aio_pool: ThreadPoolExecutor
-    __aio_loop: object
-    __user_id: int
-    __email: str
-    __password: str
-    __fpl: FPL
 
-    def __init__(self, user_id: int = None, email: str = None, password: str = None, fpl: FPL = None):
+    def __init__(self, email: str = None, password: str = None, fpl: FPL = None):
         """
         Create a new instance of this class and initiates a thread for async execution.
 
         Args:
-            user_id: The FPL user id. Only required for protected info such as user team. You can get the user id by
-            selecting the Points tab on the FPL website and then extracting it from the browser URL like this:
-            https://fantasy.premierleague.com/entry/{user_id}/event/6
             email: The email address used to log in to the FPL web site. Only required for protected info such as user team.
             password: The password used to log in to the FPL web site. Only required for protected info such as user team.
             fpl: The FPL instance to use. This particular useful for injecting a mock instance for automated testing.
             If not set, an FPL instance will be created.
         """
-
-        self.set_cred(user_id, email, password)
+        self.set_cred(email, password)
         self.__fpl = fpl
-
+        self.__user_id = None
         self.__aio_pool = ThreadPoolExecutor(1)
         self.__aio_loop = asyncio.new_event_loop()
         self.__aio_pool.submit(asyncio.set_event_loop, self.__aio_loop).result()
@@ -82,16 +72,24 @@ class FPLPandas:
         """
         return self.__aio_pool.submit(self.__aio_loop.run_until_complete, self.__call_api_async(func, requires_login)).result()
 
-    def set_cred(self, user_id: int, email: str, password: str) -> None:
+    def __get_user_id(self) -> int:
+        """
+        Gets the id of the currently logged in user. If it has not been cached yet, it retrieves it and stores it for the lifetime of this object. This method requires that a valid email and password are set using the constructor.
+
+        Returns:
+            The user id.
+        """
+        if self.__user_id is None:
+            self.__user_id = self.get_user_info().iloc[0]['entry']
+
+        return self.__user_id
+
+    def set_cred(self, email: str, password: str) -> None:
         """ Sets the credentials to use when accessing user specific data. This method does not trigger a login call.
         Args:
-            user_id: The FPL user ID. Only required for protected info such as user team. You can get the user id by
-            selecting the Points tab on the FPL website and then extracting it from the browser URL like this:
-            https://fantasy.premierleague.com/entry/{user_id}/event/6
             email: The email address used to log in to the FPL web site. Only required for protected info such as user team.
             password: The password used to log in to the FPL web site. Only required for protected info such as user team.
         """
-        self.__user_id = user_id
         self.__email = email
         self.__password = password
 
@@ -187,35 +185,39 @@ class FPLPandas:
         json_data = self.__call_api(lambda fpl: fpl.get_fixtures(return_json=True))
         return pd.DataFrame.from_records(json_data, index=['id'])
 
-    def get_user_team(self, user_id: int = None):
+    def get_user_team(self, user_id: int = None) -> List[pd.DataFrame]:
         """ Returns information about the players in the current team, the chips and transfer info of the user with
         the given user ID. This method requires that a valid email and password are set using the constructor.
 
         Args:
-            user_id: The user ID for which to get the team information. If not provided, it defaults to the user ID that
-            was set in the constructor.
+            user_id: The user ID for which to get the team information. If not provided, it defaults to the user ID that as set in the constructor.
 
         Returns:
             The team, chips, transfer info as a pandas data frame.
         """
-
         async def get_user_team_async(fpl: FPL, user_id: int = None):
-            if user_id is None:
-                user_id = self.__user_id
-
-            if user_id is None:
-                raise ValueError('No user ID was specified. Please provide a user ID.')
-
             return await fpl.get_user_team(user_id)
 
+        if user_id is None:
+            user_id = self.__get_user_id()
+
         json_data = self.__call_api(lambda fpl: get_user_team_async(fpl, user_id), requires_login=True)
-        return [pd.DataFrame.from_records(json_data['picks'], index=['element']),
+        return [pd.DataFrame.from_records(json_data['picks'], index=['element']).rename(index={'element': 'player_id'}),
                 pd.DataFrame.from_records(json_data['chips']),
                 pd.DataFrame.from_records([json_data['transfers']])]
 
+    def get_user_info(self) -> pd.DataFrame:
+        """ Returns information about the currently authenticated user. This method requires that a valid email and password are set using the constructor.
+
+        Returns:
+            The user info in a pandas data frame.
+        """
+        json_data = self.__call_api(lambda fpl: fpl.get_user_info(), requires_login=True)
+        self.__user_id = json_data['player']['entry']
+        return pd.DataFrame.from_records([json_data['player']])
 
 # Extension methods for FPL. These are necessary because FPL does not expose all available data.
-async def __fpl_get_user_team(self, user_id: str) -> List[pd.DataFrame]:
+async def __fpl_get_user_team(self, user_id: str) -> dict:
     """Gets current team, the chips and the transfer info of the logged in user. Requires the user to have
     logged in using ``fpl.login()``.
 
@@ -223,8 +225,7 @@ async def __fpl_get_user_team(self, user_id: str) -> List[pd.DataFrame]:
         https://fantasy.premierleague.com/api/my-team/91928/
 
     Args:
-        user_id: The user ID for which to get the team information. If not provided, it defaults to the user ID that
-        was set in the constructor.
+        user_id: The user ID for which to get the team information. If not provided, it defaults to the user ID that was set in the constructor.
 
     Returns:
         Current team, the chips and the transfer info as data frames.
@@ -240,5 +241,17 @@ async def __fpl_get_user_team(self, user_id: str) -> List[pd.DataFrame]:
 
     return response
 
+async def __fpl_get_user_info(self) -> dict:
+    if not logged_in(self.session):
+        raise Exception("User must be logged in.")
+
+    response = await fetch(
+        self.session, API_URLS["me"])
+
+    if response == {"details": "You cannot view this entry"}:
+        raise ValueError("User ID does not match provided email address!")
+
+    return response
 
 FPL.get_user_team = __fpl_get_user_team
+FPL.get_user_info = __fpl_get_user_info
