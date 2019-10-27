@@ -74,10 +74,10 @@ class FPLPandas:
 
     def __get_user_id(self) -> int:
         """
-        Gets the id of the currently logged in user. If it has not been cached yet, it retrieves it and stores it for the lifetime of this object. This method requires that a valid email and password are set using the constructor.
+        Gets the ID of the currently logged in user. If it has not been cached yet, it retrieves it and stores it for the lifetime of this object. This method requires that a valid email and password are set using the constructor.
 
         Returns:
-            The user id.
+            The user ID.
         """
         if self.__user_id is None:
             self.__user_id = self.get_user_info().iloc[0]['entry']
@@ -190,7 +190,7 @@ class FPLPandas:
         the given user ID. This method requires that a valid email and password are set using the constructor.
 
         Args:
-            user_id: The user ID for which to get the team information. If not provided, it defaults to the user ID that as set in the constructor.
+            user_id: The user ID for which to get the team information. If not provided, it defaults to the user ID of the currently authenticated user.
 
         Returns:
             The team, chips, transfer info as a pandas data frame.
@@ -225,7 +225,7 @@ async def __fpl_get_user_team(self, user_id: str) -> dict:
         https://fantasy.premierleague.com/api/my-team/91928/
 
     Args:
-        user_id: The user ID for which to get the team information. If not provided, it defaults to the user ID that was set in the constructor.
+        user_id: The user ID for which to get the team information. If not provided, it defaults to the user ID of currently authenticated user.
 
     Returns:
         Current team, the chips and the transfer info as data frames.
