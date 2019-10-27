@@ -9,7 +9,7 @@ def __execute(command: str):
 
 def unitest():
     log.info('Running unit tests ...')
-    __execute('python -m unittest discover -s tests')
+    __execute('python -m pytest tests/')
 
 def install():
     log.info('Installing package locally ...')
