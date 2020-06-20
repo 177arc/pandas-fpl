@@ -28,7 +28,6 @@ class FPLPandas:
         """
         self.set_cred(email, password)
         self.__fpl = fpl
-        self.__user_id = None
         self.__aio_pool = ThreadPoolExecutor(1)
         self.__aio_loop = asyncio.new_event_loop()
         self.__aio_pool.submit(asyncio.set_event_loop, self.__aio_loop).result()
@@ -92,6 +91,7 @@ class FPLPandas:
         """
         self.__email = email
         self.__password = password
+        self.__user_id = None
 
     def get_teams(self, team_ids: List[int] = None) -> pd.DataFrame:
         """Returns either a list of *all* teams, or a list of teams with IDs in
@@ -181,8 +181,8 @@ class FPLPandas:
         Returns:
             All fixtures of the season as a pandas data frame.
         """
-
-        json_data = self.__call_api(lambda fpl: fpl.get_fixtures(return_json=True))
+        max_fixture_id = 499 # Required to accommodate the changes made to the fixture IDs after the COVID-19 break.
+        json_data = self.__call_api(lambda fpl: fpl.get_fixtures_by_id(range(0,max_fixture_id), return_json=True))
         return pd.DataFrame.from_records(json_data, index=['id'])
 
     def get_user_team(self, user_id: int = None) -> List[pd.DataFrame]:
