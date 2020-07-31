@@ -12,6 +12,7 @@ class TestFplPandas(unittest.TestCase):
         fpl = FPLPandas()
         teams = fpl.get_teams()
         log.info(f'Downloaded {teams.shape[0]} teams.')
+
         self.assertTrue(teams.shape[0] > 0)
 
     def test_get_fixtures(self):
@@ -19,6 +20,7 @@ class TestFplPandas(unittest.TestCase):
         fpl = FPLPandas()
         fixtures = fpl.get_fixtures()
         log.info(f'Downloaded {fixtures.shape[0]} fixtures.')
+
         self.assertTrue(fixtures.shape[0] > 0)
 
     def test_get_players(self):
@@ -28,6 +30,7 @@ class TestFplPandas(unittest.TestCase):
             fpl = FPLPandas()
             players, history_past, history, fixtures = fpl.get_players()
         log.info(f'Downloaded {players.shape[0]} players.')
+
         self.assertTrue(players.shape[0] > 0)
         self.assertTrue(history_past.shape[0] > 0)
         self.assertTrue(history.shape[0] >= 0)
@@ -39,6 +42,7 @@ class TestFplPandas(unittest.TestCase):
         fpl = FPLPandas()
         player, history_past, history, fixtures = fpl.get_player(id)
         log.info(f'Downloaded.')
+
         self.assertTrue(player.shape[0] == 1)
         self.assertTrue(history_past.shape[0] >= 0)
         self.assertTrue(history.shape[0] >= 0)
@@ -50,9 +54,8 @@ class TestFplPandas(unittest.TestCase):
         fpl = FPLPandas(email, 'TestMcTestFace')
         user_team, chips, transfers = fpl.get_user_team()
         log.info(f'Team data downloaded.')
+
         self.assertTrue(user_team.shape[0] > 0)
-        self.assertTrue(chips.shape[0] > 0)
-        self.assertTrue(transfers.shape[0] > 0)
 
     def test_get_user_info(self):
         email = 'fpl@177arc.net'
@@ -60,6 +63,7 @@ class TestFplPandas(unittest.TestCase):
         fpl = FPLPandas(email, 'TestMcTestFace')
         user_info = fpl.get_user_info()
         log.info(f'User info downloaded.')
+
         self.assertTrue(user_info.shape[0] > 0)
 
 
