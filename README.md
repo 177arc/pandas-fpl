@@ -20,14 +20,14 @@ You can install using the pip package manager by running
 
 ### From source
 
-Download the source code by cloning the repository or by pressing ['Download ZIP'](https://github.com/177arc/pandas-fpl/archive/master.zip) on this page.
+Download the source code by cloning the repository or by pressing [Download ZIP](https://github.com/177arc/pandas-fpl/archive/master.zip) on this page.
 Install by navigating to the proper directory and running
 
     python setup.py install
 
 ## Usage
 
-For usage guidance and testing the package interactively, see the [Usage Jupyter Notebook](https://mybinder.org/v2/gh/177arc/pandas-fpl/master?filepath=usage.ipynb).
+For usage guidance and testing the package interactively, hit the [Usage Jupyter Notebook](https://mybinder.org/v2/gh/177arc/pandas-fpl/master?filepath=usage.ipynb).
 
 ## Documentation
 

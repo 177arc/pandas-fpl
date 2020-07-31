@@ -54,7 +54,6 @@ class FPLPandas:
         &#34;&#34;&#34;
         self.set_cred(email, password)
         self.__fpl = fpl
-        self.__user_id = None
         self.__aio_pool = ThreadPoolExecutor(1)
         self.__aio_loop = asyncio.new_event_loop()
         self.__aio_pool.submit(asyncio.set_event_loop, self.__aio_loop).result()
@@ -100,10 +99,10 @@ class FPLPandas:
 
     def __get_user_id(self) -&gt; int:
         &#34;&#34;&#34;
-        Gets the id of the currently logged in user. If it has not been cached yet, it retrieves it and stores it for the lifetime of this object. This method requires that a valid email and password are set using the constructor.
+        Gets the ID of the currently logged in user. If it has not been cached yet, it retrieves it and stores it for the lifetime of this object. This method requires that a valid email and password are set using the constructor.
 
         Returns:
-            The user id.
+            The user ID.
         &#34;&#34;&#34;
         if self.__user_id is None:
             self.__user_id = self.get_user_info().iloc[0][&#39;entry&#39;]
@@ -118,6 +117,7 @@ class FPLPandas:
         &#34;&#34;&#34;
         self.__email = email
         self.__password = password
+        self.__user_id = None
 
     def get_teams(self, team_ids: List[int] = None) -&gt; pd.DataFrame:
         &#34;&#34;&#34;Returns either a list of *all* teams, or a list of teams with IDs in
@@ -207,8 +207,8 @@ class FPLPandas:
         Returns:
             All fixtures of the season as a pandas data frame.
         &#34;&#34;&#34;
-
-        json_data = self.__call_api(lambda fpl: fpl.get_fixtures(return_json=True))
+        max_fixture_id = 499 # Required to accommodate the changes made to the fixture IDs after the COVID-19 break.
+        json_data = self.__call_api(lambda fpl: fpl.get_fixtures_by_id(range(0,max_fixture_id), return_json=True))
         return pd.DataFrame.from_records(json_data, index=[&#39;id&#39;])
 
     def get_user_team(self, user_id: int = None) -&gt; List[pd.DataFrame]:
@@ -216,7 +216,7 @@ class FPLPandas:
         the given user ID. This method requires that a valid email and password are set using the constructor.
 
         Args:
-            user_id: The user ID for which to get the team information. If not provided, it defaults to the user ID that as set in the constructor.
+            user_id: The user ID for which to get the team information. If not provided, it defaults to the user ID of the currently authenticated user.
 
         Returns:
             The team, chips, transfer info as a pandas data frame.
@@ -251,7 +251,7 @@ async def __fpl_get_user_team(self, user_id: str) -&gt; dict:
         https://fantasy.premierleague.com/api/my-team/91928/
 
     Args:
-        user_id: The user ID for which to get the team information. If not provided, it defaults to the user ID that was set in the constructor.
+        user_id: The user ID for which to get the team information. If not provided, it defaults to the user ID of currently authenticated user.
 
     Returns:
         Current team, the chips and the transfer info as data frames.
@@ -337,7 +337,6 @@ and ipykernel &gt;= 5.0.1
         &#34;&#34;&#34;
         self.set_cred(email, password)
         self.__fpl = fpl
-        self.__user_id = None
         self.__aio_pool = ThreadPoolExecutor(1)
         self.__aio_loop = asyncio.new_event_loop()
         self.__aio_pool.submit(asyncio.set_event_loop, self.__aio_loop).result()
@@ -383,10 +382,10 @@ and ipykernel &gt;= 5.0.1
 
     def __get_user_id(self) -&gt; int:
         &#34;&#34;&#34;
-        Gets the id of the currently logged in user. If it has not been cached yet, it retrieves it and stores it for the lifetime of this object. This method requires that a valid email and password are set using the constructor.
+        Gets the ID of the currently logged in user. If it has not been cached yet, it retrieves it and stores it for the lifetime of this object. This method requires that a valid email and password are set using the constructor.
 
         Returns:
-            The user id.
+            The user ID.
         &#34;&#34;&#34;
         if self.__user_id is None:
             self.__user_id = self.get_user_info().iloc[0][&#39;entry&#39;]
@@ -401,6 +400,7 @@ and ipykernel &gt;= 5.0.1
         &#34;&#34;&#34;
         self.__email = email
         self.__password = password
+        self.__user_id = None
 
     def get_teams(self, team_ids: List[int] = None) -&gt; pd.DataFrame:
         &#34;&#34;&#34;Returns either a list of *all* teams, or a list of teams with IDs in
@@ -490,8 +490,8 @@ and ipykernel &gt;= 5.0.1
         Returns:
             All fixtures of the season as a pandas data frame.
         &#34;&#34;&#34;
-
-        json_data = self.__call_api(lambda fpl: fpl.get_fixtures(return_json=True))
+        max_fixture_id = 499 # Required to accommodate the changes made to the fixture IDs after the COVID-19 break.
+        json_data = self.__call_api(lambda fpl: fpl.get_fixtures_by_id(range(0,max_fixture_id), return_json=True))
         return pd.DataFrame.from_records(json_data, index=[&#39;id&#39;])
 
     def get_user_team(self, user_id: int = None) -&gt; List[pd.DataFrame]:
@@ -499,7 +499,7 @@ and ipykernel &gt;= 5.0.1
         the given user ID. This method requires that a valid email and password are set using the constructor.
 
         Args:
-            user_id: The user ID for which to get the team information. If not provided, it defaults to the user ID that as set in the constructor.
+            user_id: The user ID for which to get the team information. If not provided, it defaults to the user ID of the currently authenticated user.
 
         Returns:
             The team, chips, transfer info as a pandas data frame.
@@ -551,8 +551,8 @@ and ipykernel &gt;= 5.0.1
     Returns:
         All fixtures of the season as a pandas data frame.
     &#34;&#34;&#34;
-
-    json_data = self.__call_api(lambda fpl: fpl.get_fixtures(return_json=True))
+    max_fixture_id = 499 # Required to accommodate the changes made to the fixture IDs after the COVID-19 break.
+    json_data = self.__call_api(lambda fpl: fpl.get_fixtures_by_id(range(0,max_fixture_id), return_json=True))
     return pd.DataFrame.from_records(json_data, index=[&#39;id&#39;])</code></pre>
 </details>
 </dd>
@@ -751,7 +751,7 @@ the given user ID. This method requires that a valid email and password are set 
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>user_id</code></strong></dt>
-<dd>The user ID for which to get the team information. If not provided, it defaults to the user ID that as set in the constructor.</dd>
+<dd>The user ID for which to get the team information. If not provided, it defaults to the user ID of the currently authenticated user.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <p>The team, chips, transfer info as a pandas data frame.</p></section>
@@ -764,7 +764,7 @@ the given user ID. This method requires that a valid email and password are set 
     the given user ID. This method requires that a valid email and password are set using the constructor.
 
     Args:
-        user_id: The user ID for which to get the team information. If not provided, it defaults to the user ID that as set in the constructor.
+        user_id: The user ID for which to get the team information. If not provided, it defaults to the user ID of the currently authenticated user.
 
     Returns:
         The team, chips, transfer info as a pandas data frame.
@@ -804,7 +804,8 @@ the given user ID. This method requires that a valid email and password are set 
         password: The password used to log in to the FPL web site. Only required for protected info such as user team.
     &#34;&#34;&#34;
     self.__email = email
-    self.__password = password</code></pre>
+    self.__password = password
+    self.__user_id = None</code></pre>
 </details>
 </dd>
 </dl>
