@@ -181,8 +181,7 @@ class FPLPandas:
         Returns:
             All fixtures of the season as a pandas data frame.
         """
-        max_fixture_id = 499 # Required to accommodate the changes made to the fixture IDs after the COVID-19 break.
-        json_data = self.__call_api(lambda fpl: fpl.get_fixtures_by_id(range(0,max_fixture_id), return_json=True))
+        json_data = self.__call_api(lambda fpl: fpl.get_fixtures(return_json=True))
         return pd.DataFrame.from_records(json_data, index=['id'])
 
     def get_user_team(self, user_id: int = None) -> List[pd.DataFrame]:

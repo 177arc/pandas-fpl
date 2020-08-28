@@ -53,12 +53,11 @@ class TestFplPandas(unittest.TestCase):
         fpl_mock = mock.MagicMock()
 
         @asyncio.coroutine
-        def mock_get_fixtures(ids, return_json):
-            self.assertTrue(set([1, 2]) <= set(ids))
+        def mock_get_fixtures(return_json):
             self.assertEqual(return_json, True)
             return test_data
 
-        fpl_mock.get_fixtures_by_id = mock_get_fixtures
+        fpl_mock.get_fixtures = mock_get_fixtures
 
         fpl = FPLPandas(fpl=fpl_mock)
         actual_df = fpl.get_fixtures()

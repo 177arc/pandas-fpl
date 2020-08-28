@@ -146,8 +146,8 @@ class FPLPandas:
         Returns:
             1: The player data as a pandas data frame with one row indexed by ``player_id``.
             2: The summary stats for the past seasons s a pandas data frame indexed by ``player_id``, ``season_name``.
-            3: The stats for the completed games as a pandas data frame indexed by ``player_id``, ``fixture``
-            4: The data for the upcoming fixtures as a pandas data frame indexed by ``player_id``, ``event``
+            3: The stats for the completed games as a pandas data frame indexed by ``player_id``, ``fixture``. At the beginning of the season this data frame is empty.
+            4: The data for the upcoming fixtures as a pandas data frame indexed by ``player_id``, ``event``. At the end of the season this data frame is empty.
         Raises:
             ValueError: Player with ``player_id`` not found
         &#34;&#34;&#34;
@@ -156,7 +156,7 @@ class FPLPandas:
             player_df = pd.DataFrame.from_records(json_data[element])
             player_df[&#39;player_id&#39;] = player_id
 
-            return player_df.set_index([&#39;player_id&#39;, index])
+            return player_df.pipe(_set_index_safe, [&#39;player_id&#39;, index])
 
         json_data = self.__call_api(lambda fpl: fpl.get_player(player_id, players=None, include_summary=True, return_json=True))
         return [pd.DataFrame.from_records([json_data], index=[&#39;id&#39;]).rename(index={&#39;id&#39;: &#39;player_id&#39;}),
@@ -178,8 +178,8 @@ class FPLPandas:
         Returns:
             1: The team players as a pandas data frame indexed by ``player_id``.
             2: The summary stats for the past seasons s a pandas data frame indexed by ``player_id``, ``season_name``.
-            3: The stats for the completed games as a pandas data frame indexed by ``player_id``, ``fixture``
-            4: The data for the upcoming fixtures as a pandas data frame indexed by ``player_id``, ``event``
+            3: The stats for the completed games as a pandas data frame indexed by ``player_id``, ``fixture``. At the beginning of the season this data frame is empty.
+            4: The data for the upcoming fixtures as a pandas data frame indexed by ``player_id``, ``event``. At the end of the season this data frame is empty.
         &#34;&#34;&#34;
 
         def convert_players_df(json_data: dict, element: str, index: str) -&gt; pd.DataFrame:
@@ -189,7 +189,7 @@ class FPLPandas:
                 player_df[&#39;player_id&#39;] = player[&#39;id&#39;]
                 players_df = pd.concat([players_df, player_df], sort=False)
 
-            return players_df.set_index([&#39;player_id&#39;, index])
+            return players_df.pipe(_set_index_safe, [&#39;player_id&#39;, index])
 
         json_data = self.__call_api(lambda fpl: fpl.get_players(player_ids, include_summary=True, return_json=True))
         return [pd.DataFrame.from_records(json_data, index=[&#39;id&#39;], exclude=[&#39;history_past&#39;, &#39;history&#39;, &#39;fixtures&#39;]).rename(index={&#39;id&#39;: &#39;player_id&#39;}),
@@ -207,8 +207,7 @@ class FPLPandas:
         Returns:
             All fixtures of the season as a pandas data frame.
         &#34;&#34;&#34;
-        max_fixture_id = 499 # Required to accommodate the changes made to the fixture IDs after the COVID-19 break.
-        json_data = self.__call_api(lambda fpl: fpl.get_fixtures_by_id(range(0,max_fixture_id), return_json=True))
+        json_data = self.__call_api(lambda fpl: fpl.get_fixtures(return_json=True))
         return pd.DataFrame.from_records(json_data, index=[&#39;id&#39;])
 
     def get_user_team(self, user_id: int = None) -&gt; List[pd.DataFrame]:
@@ -278,6 +277,24 @@ async def __fpl_get_user_info(self) -&gt; dict:
         raise ValueError(&#34;User ID does not match provided email address!&#34;)
 
     return response
+
+# Helper methods
+def _set_index_safe(df: pd.DataFrame, index_columns: list) -&gt; pd.DataFrame:
+    &#34;&#34;&#34;
+    Sets the given columns as the index but only if the given data frame is not empty or None.
+
+    Args:
+         df: Data frame to index
+         index_columns: Index columns to set
+
+    Returns:
+        Index data frame is not empty otherwise it returns the original data frame.
+    &#34;&#34;&#34;
+    if df is None or df.shape[0] == 0:
+        return df
+
+    return df.set_index(index_columns)
+
 
 FPL.get_user_team = __fpl_get_user_team
 FPL.get_user_info = __fpl_get_user_info</code></pre>
@@ -429,8 +446,8 @@ and ipykernel &gt;= 5.0.1
         Returns:
             1: The player data as a pandas data frame with one row indexed by ``player_id``.
             2: The summary stats for the past seasons s a pandas data frame indexed by ``player_id``, ``season_name``.
-            3: The stats for the completed games as a pandas data frame indexed by ``player_id``, ``fixture``
-            4: The data for the upcoming fixtures as a pandas data frame indexed by ``player_id``, ``event``
+            3: The stats for the completed games as a pandas data frame indexed by ``player_id``, ``fixture``. At the beginning of the season this data frame is empty.
+            4: The data for the upcoming fixtures as a pandas data frame indexed by ``player_id``, ``event``. At the end of the season this data frame is empty.
         Raises:
             ValueError: Player with ``player_id`` not found
         &#34;&#34;&#34;
@@ -439,7 +456,7 @@ and ipykernel &gt;= 5.0.1
             player_df = pd.DataFrame.from_records(json_data[element])
             player_df[&#39;player_id&#39;] = player_id
 
-            return player_df.set_index([&#39;player_id&#39;, index])
+            return player_df.pipe(_set_index_safe, [&#39;player_id&#39;, index])
 
         json_data = self.__call_api(lambda fpl: fpl.get_player(player_id, players=None, include_summary=True, return_json=True))
         return [pd.DataFrame.from_records([json_data], index=[&#39;id&#39;]).rename(index={&#39;id&#39;: &#39;player_id&#39;}),
@@ -461,8 +478,8 @@ and ipykernel &gt;= 5.0.1
         Returns:
             1: The team players as a pandas data frame indexed by ``player_id``.
             2: The summary stats for the past seasons s a pandas data frame indexed by ``player_id``, ``season_name``.
-            3: The stats for the completed games as a pandas data frame indexed by ``player_id``, ``fixture``
-            4: The data for the upcoming fixtures as a pandas data frame indexed by ``player_id``, ``event``
+            3: The stats for the completed games as a pandas data frame indexed by ``player_id``, ``fixture``. At the beginning of the season this data frame is empty.
+            4: The data for the upcoming fixtures as a pandas data frame indexed by ``player_id``, ``event``. At the end of the season this data frame is empty.
         &#34;&#34;&#34;
 
         def convert_players_df(json_data: dict, element: str, index: str) -&gt; pd.DataFrame:
@@ -472,7 +489,7 @@ and ipykernel &gt;= 5.0.1
                 player_df[&#39;player_id&#39;] = player[&#39;id&#39;]
                 players_df = pd.concat([players_df, player_df], sort=False)
 
-            return players_df.set_index([&#39;player_id&#39;, index])
+            return players_df.pipe(_set_index_safe, [&#39;player_id&#39;, index])
 
         json_data = self.__call_api(lambda fpl: fpl.get_players(player_ids, include_summary=True, return_json=True))
         return [pd.DataFrame.from_records(json_data, index=[&#39;id&#39;], exclude=[&#39;history_past&#39;, &#39;history&#39;, &#39;fixtures&#39;]).rename(index={&#39;id&#39;: &#39;player_id&#39;}),
@@ -490,8 +507,7 @@ and ipykernel &gt;= 5.0.1
         Returns:
             All fixtures of the season as a pandas data frame.
         &#34;&#34;&#34;
-        max_fixture_id = 499 # Required to accommodate the changes made to the fixture IDs after the COVID-19 break.
-        json_data = self.__call_api(lambda fpl: fpl.get_fixtures_by_id(range(0,max_fixture_id), return_json=True))
+        json_data = self.__call_api(lambda fpl: fpl.get_fixtures(return_json=True))
         return pd.DataFrame.from_records(json_data, index=[&#39;id&#39;])
 
     def get_user_team(self, user_id: int = None) -&gt; List[pd.DataFrame]:
@@ -551,8 +567,7 @@ and ipykernel &gt;= 5.0.1
     Returns:
         All fixtures of the season as a pandas data frame.
     &#34;&#34;&#34;
-    max_fixture_id = 499 # Required to accommodate the changes made to the fixture IDs after the COVID-19 break.
-    json_data = self.__call_api(lambda fpl: fpl.get_fixtures_by_id(range(0,max_fixture_id), return_json=True))
+    json_data = self.__call_api(lambda fpl: fpl.get_fixtures(return_json=True))
     return pd.DataFrame.from_records(json_data, index=[&#39;id&#39;])</code></pre>
 </details>
 </dd>
@@ -576,9 +591,9 @@ and ipykernel &gt;= 5.0.1
 <dt><strong><code>2</code></strong></dt>
 <dd>The summary stats for the past seasons s a pandas data frame indexed by <code>player_id</code>, <code>season_name</code>.</dd>
 <dt><strong><code>3</code></strong></dt>
-<dd>The stats for the completed games as a pandas data frame indexed by <code>player_id</code>, <code>fixture</code></dd>
+<dd>The stats for the completed games as a pandas data frame indexed by <code>player_id</code>, <code>fixture</code>. At the beginning of the season this data frame is empty.</dd>
 <dt><strong><code>4</code></strong></dt>
-<dd>The data for the upcoming fixtures as a pandas data frame indexed by <code>player_id</code>, <code>event</code></dd>
+<dd>The data for the upcoming fixtures as a pandas data frame indexed by <code>player_id</code>, <code>event</code>. At the end of the season this data frame is empty.</dd>
 </dl>
 <h2 id="raises">Raises</h2>
 <dl>
@@ -601,8 +616,8 @@ and ipykernel &gt;= 5.0.1
     Returns:
         1: The player data as a pandas data frame with one row indexed by ``player_id``.
         2: The summary stats for the past seasons s a pandas data frame indexed by ``player_id``, ``season_name``.
-        3: The stats for the completed games as a pandas data frame indexed by ``player_id``, ``fixture``
-        4: The data for the upcoming fixtures as a pandas data frame indexed by ``player_id``, ``event``
+        3: The stats for the completed games as a pandas data frame indexed by ``player_id``, ``fixture``. At the beginning of the season this data frame is empty.
+        4: The data for the upcoming fixtures as a pandas data frame indexed by ``player_id``, ``event``. At the end of the season this data frame is empty.
     Raises:
         ValueError: Player with ``player_id`` not found
     &#34;&#34;&#34;
@@ -611,7 +626,7 @@ and ipykernel &gt;= 5.0.1
         player_df = pd.DataFrame.from_records(json_data[element])
         player_df[&#39;player_id&#39;] = player_id
 
-        return player_df.set_index([&#39;player_id&#39;, index])
+        return player_df.pipe(_set_index_safe, [&#39;player_id&#39;, index])
 
     json_data = self.__call_api(lambda fpl: fpl.get_player(player_id, players=None, include_summary=True, return_json=True))
     return [pd.DataFrame.from_records([json_data], index=[&#39;id&#39;]).rename(index={&#39;id&#39;: &#39;player_id&#39;}),
@@ -643,9 +658,9 @@ indexed by <code>player_id</code> and their associated data.</p>
 <dt><strong><code>2</code></strong></dt>
 <dd>The summary stats for the past seasons s a pandas data frame indexed by <code>player_id</code>, <code>season_name</code>.</dd>
 <dt><strong><code>3</code></strong></dt>
-<dd>The stats for the completed games as a pandas data frame indexed by <code>player_id</code>, <code>fixture</code></dd>
+<dd>The stats for the completed games as a pandas data frame indexed by <code>player_id</code>, <code>fixture</code>. At the beginning of the season this data frame is empty.</dd>
 <dt><strong><code>4</code></strong></dt>
-<dd>The data for the upcoming fixtures as a pandas data frame indexed by <code>player_id</code>, <code>event</code></dd>
+<dd>The data for the upcoming fixtures as a pandas data frame indexed by <code>player_id</code>, <code>event</code>. At the end of the season this data frame is empty.</dd>
 </dl></section>
 <details class="source">
 <summary>
@@ -665,8 +680,8 @@ indexed by <code>player_id</code> and their associated data.</p>
     Returns:
         1: The team players as a pandas data frame indexed by ``player_id``.
         2: The summary stats for the past seasons s a pandas data frame indexed by ``player_id``, ``season_name``.
-        3: The stats for the completed games as a pandas data frame indexed by ``player_id``, ``fixture``
-        4: The data for the upcoming fixtures as a pandas data frame indexed by ``player_id``, ``event``
+        3: The stats for the completed games as a pandas data frame indexed by ``player_id``, ``fixture``. At the beginning of the season this data frame is empty.
+        4: The data for the upcoming fixtures as a pandas data frame indexed by ``player_id``, ``event``. At the end of the season this data frame is empty.
     &#34;&#34;&#34;
 
     def convert_players_df(json_data: dict, element: str, index: str) -&gt; pd.DataFrame:
@@ -676,7 +691,7 @@ indexed by <code>player_id</code> and their associated data.</p>
             player_df[&#39;player_id&#39;] = player[&#39;id&#39;]
             players_df = pd.concat([players_df, player_df], sort=False)
 
-        return players_df.set_index([&#39;player_id&#39;, index])
+        return players_df.pipe(_set_index_safe, [&#39;player_id&#39;, index])
 
     json_data = self.__call_api(lambda fpl: fpl.get_players(player_ids, include_summary=True, return_json=True))
     return [pd.DataFrame.from_records(json_data, index=[&#39;id&#39;], exclude=[&#39;history_past&#39;, &#39;history&#39;, &#39;fixtures&#39;]).rename(index={&#39;id&#39;: &#39;player_id&#39;}),
