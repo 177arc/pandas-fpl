@@ -15,6 +15,22 @@ class TestFplPandas(unittest.TestCase):
 
         self.assertTrue(teams.shape[0] > 0)
 
+    def test_get_game_weeks(self):
+        log.info(f'Downloading game weeks ...')
+        fpl = FPLPandas()
+        game_weeks = fpl.get_game_weeks()
+        log.info(f'Downloaded {game_weeks.shape[0]} game weeks.')
+
+        self.assertTrue(game_weeks.shape[0] == 38)
+
+    def test_get_game_weeks_by_ids(self):
+        log.info(f'Downloading game weeks ...')
+        fpl = FPLPandas()
+        game_weeks = fpl.get_game_weeks([1,2])
+        log.info(f'Downloaded {game_weeks.shape[0]} game weeks.')
+
+        self.assertTrue(game_weeks.shape[0] == 2)
+
     def test_get_fixtures(self):
         log.info(f'Downloading fixtures ...')
         fpl = FPLPandas()

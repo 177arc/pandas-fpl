@@ -108,6 +108,21 @@ class FPLPandas:
         json_data = self.__call_api(lambda fpl: fpl.get_teams(team_ids, return_json=True))
         return pd.DataFrame.from_records(json_data, index=['id'])
 
+    def get_game_weeks(self, game_week_ids: List[int] = None) -> pd.DataFrame:
+        """Returns either a list of *all* game weeks, or a list of game weeks with IDs in
+        the optional ``game_week_ids`` list.
+
+        Information is taken from:
+            https://fantasy.premierleague.com/api/bootstrap-static/
+
+        Args:
+            game_week_ids: (optional) List containing the IDs of game weeks. If not set a list of *all* game weeks will be returned.
+        Returns:
+            The game weeks as a pandas data frame.
+        """
+        json_data = self.__call_api(lambda fpl: fpl.get_gameweeks(game_week_ids, return_json=True))
+        return pd.DataFrame.from_records(json_data, index=['id'])
+
     def get_player(self, player_id: int) -> List[pd.DataFrame]:
         """Returns the player with the given ``player_id`` as a data frame and his associated data.
 
@@ -264,10 +279,13 @@ def _set_index_safe(df: pd.DataFrame, index_columns: list) -> pd.DataFrame:
     Returns:
         Index data frame is not empty otherwise it returns the original data frame.
     """
-    if df is None or df.shape[0] == 0:
-        return df
+    #if df is None or df.shape[0] == 0:
+    #    return df
 
-    return df.set_index(index_columns)
+    cols = list(df.columns.values)
+    return (df
+        .reindex(columns=(cols+[col for col in index_columns if col not in cols]))
+        .set_index(index_columns))
 
 
 FPL.get_user_team = __fpl_get_user_team

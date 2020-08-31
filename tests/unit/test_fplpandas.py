@@ -46,6 +46,42 @@ class TestFplPandas(unittest.TestCase):
         expected_df = pd.DataFrame.from_dict(test_data).set_index('id')
         self.assertTrue(expected_df.equals(actual_df))
 
+    def test_get_game_weeks(self):
+        test_data = [{'id': 1, 'attr1': 'value11', 'attr2': 'value12'},
+                     {'id': 2, 'attr1': 'value21', 'attr2': 'value22'}]
+
+        fpl_mock = mock.MagicMock()
+
+        async def mock_game_weeks(game_week_ids, return_json):
+            self.assertEqual(game_week_ids, None)
+            self.assertEqual(return_json, True)
+            return test_data
+
+        fpl_mock.get_gameweeks = mock_game_weeks
+
+        fpl = FPLPandas(fpl=fpl_mock)
+        actual_df = fpl.get_game_weeks()
+        expected_df = pd.DataFrame.from_dict(test_data).set_index('id')
+        self.assertTrue(expected_df.equals(actual_df))
+
+    def test_get_game_weeks_with_ids(self):
+        test_data = [{'id': 1, 'attr1': 'value11', 'attr2': 'value12'},
+                     {'id': 2, 'attr1': 'value21', 'attr2': 'value22'}]
+
+        fpl_mock = mock.MagicMock()
+
+        async def mock_get_game_weeks(game_week_ids, return_json):
+            self.assertEqual(game_week_ids, [1, 2])
+            self.assertEqual(return_json, True)
+            return test_data
+
+        fpl_mock.get_gameweeks = mock_get_game_weeks
+
+        fpl = FPLPandas(fpl=fpl_mock)
+        actual_df = fpl.get_game_weeks([1, 2])
+        expected_df = pd.DataFrame.from_dict(test_data).set_index('id')
+        self.assertTrue(expected_df.equals(actual_df))
+
     def test_get_fixtures(self):
         test_data = [{'id': 1, 'attr1': 'value11', 'attr2': 'value12'},
                      {'id': 2, 'attr1': 'value21', 'attr2': 'value22'}]
@@ -103,6 +139,44 @@ class TestFplPandas(unittest.TestCase):
         assert_frame_equal(expected_player_df, actual_player_df)
         assert_frame_equal(expected_history_past_df, actual_history_past_df)
         assert_frame_equal(expected_history_df, actual_history_df)
+        assert_frame_equal(expected_fixtures_df, actual_fixture_df)
+
+
+    def test_get_player_with_no_history(self):
+        test_data = {'id': 1, 'attr1': 'value11', 'attr2': 'value12',
+                          'history_past': [{'season_name': '2017/18', 'attr1': 'value11', 'attr2': 'value12'},
+                                            {'season_name': '2018/19', 'attr1': 'value21', 'attr2': 'value22'}],
+                          'history': [],
+                          'fixtures': [{'event': 1, 'attr1': 'value11', 'attr2': 'value12'},
+                                       {'event': 2, 'attr1': 'value21', 'attr2': 'value22'}]
+                      }
+        expected_history_past = [{'season_name': '2017/18', 'attr1': 'value11', 'attr2': 'value12', 'player_id': 1},
+                                 {'season_name': '2018/19', 'attr1': 'value21', 'attr2': 'value22', 'player_id': 1}]
+        expected_fixtures = [{'event': 1, 'attr1': 'value11', 'attr2': 'value12', 'player_id': 1},
+                            {'event': 2, 'attr1': 'value21', 'attr2': 'value22', 'player_id': 1}]
+
+        expected_player_df = pd.DataFrame.from_records([test_data], index=['id']).rename(index={'id': 'player_id'})
+        expected_history_past_df = pd.DataFrame.from_dict(expected_history_past).set_index(['player_id', 'season_name'])
+        expected_history_df = pd.DataFrame(columns=['player_id', 'fixture']).set_index(['player_id', 'fixture'])
+        expected_fixtures_df = pd.DataFrame.from_dict(expected_fixtures).set_index(['player_id', 'event'])
+
+        fpl_mock = mock.MagicMock()
+
+        async def mock_get_player(player_id, players, include_summary, return_json):
+            self.assertEqual(player_id, 1)
+            self.assertEqual(players, None)
+            self.assertEqual(include_summary, True)
+            self.assertEqual(return_json, True)
+            return test_data
+
+        fpl_mock.get_player = mock_get_player
+
+        fpl = FPLPandas(fpl=fpl_mock)
+        actual_player_df, actual_history_past_df, actual_history_df, actual_fixture_df = fpl.get_player(1)
+
+        assert_frame_equal(expected_player_df, actual_player_df)
+        assert_frame_equal(expected_history_past_df, actual_history_past_df)
+        assert_frame_equal(expected_history_df, actual_history_df, check_index_type=False)
         assert_frame_equal(expected_fixtures_df, actual_fixture_df)
 
 

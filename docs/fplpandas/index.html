@@ -134,6 +134,21 @@ class FPLPandas:
         json_data = self.__call_api(lambda fpl: fpl.get_teams(team_ids, return_json=True))
         return pd.DataFrame.from_records(json_data, index=[&#39;id&#39;])
 
+    def get_game_weeks(self, game_week_ids: List[int] = None) -&gt; pd.DataFrame:
+        &#34;&#34;&#34;Returns either a list of *all* game weeks, or a list of game weeks with IDs in
+        the optional ``game_week_ids`` list.
+
+        Information is taken from:
+            https://fantasy.premierleague.com/api/bootstrap-static/
+
+        Args:
+            game_week_ids: (optional) List containing the IDs of game weeks. If not set a list of *all* game weeks will be returned.
+        Returns:
+            The game weeks as a pandas data frame.
+        &#34;&#34;&#34;
+        json_data = self.__call_api(lambda fpl: fpl.get_gameweeks(game_week_ids, return_json=True))
+        return pd.DataFrame.from_records(json_data, index=[&#39;id&#39;])
+
     def get_player(self, player_id: int) -&gt; List[pd.DataFrame]:
         &#34;&#34;&#34;Returns the player with the given ``player_id`` as a data frame and his associated data.
 
@@ -290,10 +305,13 @@ def _set_index_safe(df: pd.DataFrame, index_columns: list) -&gt; pd.DataFrame:
     Returns:
         Index data frame is not empty otherwise it returns the original data frame.
     &#34;&#34;&#34;
-    if df is None or df.shape[0] == 0:
-        return df
+    #if df is None or df.shape[0] == 0:
+    #    return df
 
-    return df.set_index(index_columns)
+    cols = list(df.columns.values)
+    return (df
+        .reindex(columns=(cols+[col for col in index_columns if col not in cols]))
+        .set_index(index_columns))
 
 
 FPL.get_user_team = __fpl_get_user_team
@@ -434,6 +452,21 @@ and ipykernel &gt;= 5.0.1
         json_data = self.__call_api(lambda fpl: fpl.get_teams(team_ids, return_json=True))
         return pd.DataFrame.from_records(json_data, index=[&#39;id&#39;])
 
+    def get_game_weeks(self, game_week_ids: List[int] = None) -&gt; pd.DataFrame:
+        &#34;&#34;&#34;Returns either a list of *all* game weeks, or a list of game weeks with IDs in
+        the optional ``game_week_ids`` list.
+
+        Information is taken from:
+            https://fantasy.premierleague.com/api/bootstrap-static/
+
+        Args:
+            game_week_ids: (optional) List containing the IDs of game weeks. If not set a list of *all* game weeks will be returned.
+        Returns:
+            The game weeks as a pandas data frame.
+        &#34;&#34;&#34;
+        json_data = self.__call_api(lambda fpl: fpl.get_gameweeks(game_week_ids, return_json=True))
+        return pd.DataFrame.from_records(json_data, index=[&#39;id&#39;])
+
     def get_player(self, player_id: int) -&gt; List[pd.DataFrame]:
         &#34;&#34;&#34;Returns the player with the given ``player_id`` as a data frame and his associated data.
 
@@ -568,6 +601,41 @@ and ipykernel &gt;= 5.0.1
         All fixtures of the season as a pandas data frame.
     &#34;&#34;&#34;
     json_data = self.__call_api(lambda fpl: fpl.get_fixtures(return_json=True))
+    return pd.DataFrame.from_records(json_data, index=[&#39;id&#39;])</code></pre>
+</details>
+</dd>
+<dt id="fplpandas.FPLPandas.get_game_weeks"><code class="name flex">
+<span>def <span class="ident">get_game_weeks</span></span>(<span>self, game_week_ids=None)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Returns either a list of <em>all</em> game weeks, or a list of game weeks with IDs in
+the optional <code>game_week_ids</code> list.</p>
+<p>Information is taken from:
+<a href="https://fantasy.premierleague.com/api/bootstrap-static/">https://fantasy.premierleague.com/api/bootstrap-static/</a></p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>game_week_ids</code></strong></dt>
+<dd>(optional) List containing the IDs of game weeks. If not set a list of <em>all</em> game weeks will be returned.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>The game weeks as a pandas data frame.</p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_game_weeks(self, game_week_ids: List[int] = None) -&gt; pd.DataFrame:
+    &#34;&#34;&#34;Returns either a list of *all* game weeks, or a list of game weeks with IDs in
+    the optional ``game_week_ids`` list.
+
+    Information is taken from:
+        https://fantasy.premierleague.com/api/bootstrap-static/
+
+    Args:
+        game_week_ids: (optional) List containing the IDs of game weeks. If not set a list of *all* game weeks will be returned.
+    Returns:
+        The game weeks as a pandas data frame.
+    &#34;&#34;&#34;
+    json_data = self.__call_api(lambda fpl: fpl.get_gameweeks(game_week_ids, return_json=True))
     return pd.DataFrame.from_records(json_data, index=[&#39;id&#39;])</code></pre>
 </details>
 </dd>
@@ -840,6 +908,7 @@ the given user ID. This method requires that a valid email and password are set 
 <h4><code><a title="fplpandas.FPLPandas" href="#fplpandas.FPLPandas">FPLPandas</a></code></h4>
 <ul class="two-column">
 <li><code><a title="fplpandas.FPLPandas.get_fixtures" href="#fplpandas.FPLPandas.get_fixtures">get_fixtures</a></code></li>
+<li><code><a title="fplpandas.FPLPandas.get_game_weeks" href="#fplpandas.FPLPandas.get_game_weeks">get_game_weeks</a></code></li>
 <li><code><a title="fplpandas.FPLPandas.get_player" href="#fplpandas.FPLPandas.get_player">get_player</a></code></li>
 <li><code><a title="fplpandas.FPLPandas.get_players" href="#fplpandas.FPLPandas.get_players">get_players</a></code></li>
 <li><code><a title="fplpandas.FPLPandas.get_teams" href="#fplpandas.FPLPandas.get_teams">get_teams</a></code></li>
