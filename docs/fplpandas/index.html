@@ -32,6 +32,7 @@ import asyncio
 from concurrent.futures import ThreadPoolExecutor
 from fpl.utils import fetch, logged_in
 from fpl.constants import API_URLS
+from fpl.models.fixture import Fixture
 
 
 class FPLPandas:
@@ -313,9 +314,30 @@ def _set_index_safe(df: pd.DataFrame, index_columns: list) -&gt; pd.DataFrame:
         .reindex(columns=(cols+[col for col in index_columns if col not in cols]))
         .set_index(index_columns))
 
+# Overriding fpl method for now because it does not return fixtures without game weeks.
+async def __fpl_get_fixtures(self, return_json=False):
+        &#34;&#34;&#34;Returns a list of *all* fixtures.
+
+        Information is taken from e.g.:
+            https://fantasy.premierleague.com/api/fixtures/
+            https://fantasy.premierleague.com/api/fixtures/?event=1
+
+        :param return_json: (optional) Boolean. If ``True`` returns a list of
+            ``dict``s, if ``False`` returns a list of  :class:`Fixture`
+            objects. Defaults to ``False``.
+        :type return_json: bool
+        :rtype: list
+        &#34;&#34;&#34;
+        fixtures = await fetch(self.session, API_URLS[&#34;fixtures&#34;])
+
+        if return_json:
+            return fixtures
+
+        return [Fixture(fixture) for fixture in fixtures]
 
 FPL.get_user_team = __fpl_get_user_team
-FPL.get_user_info = __fpl_get_user_info</code></pre>
+FPL.get_user_info = __fpl_get_user_info
+FPL.get_fixtures = __fpl_get_fixtures</code></pre>
 </details>
 </section>
 <section>
