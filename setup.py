@@ -9,7 +9,7 @@ readme = (cwd / 'README.md').read_text()
 
 # This call to setup() does all the work
 setup(name='pandas-fpl',
-        version='0.3.3',
+        version='0.3.4',
         description='Pandas wrapper for Fantasy Premier League API based on the FPL package: https://github.com/amosbastian/fpl',
         long_description=readme,
         long_description_content_type='text/markdown',
@@ -25,5 +25,5 @@ setup(name='pandas-fpl',
         ],
         packages=['fplpandas'],
         include_package_data=True,
-        install_requires=['pandas', 'fpl']
+        install_requires=['pandas', 'fpl', 'backoff']
 )
