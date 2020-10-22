@@ -3,6 +3,8 @@ import aiohttp
 import pandas as pd
 from typing import List
 import asyncio
+import backoff
+import time
 from concurrent.futures import ThreadPoolExecutor
 from fpl.utils import fetch, logged_in
 from fpl.constants import API_URLS
@@ -181,11 +183,12 @@ class FPLPandas:
 
             return players_df.pipe(_set_index_safe, ['player_id', index])
 
-        json_data = self.__call_api(lambda fpl: fpl.get_players(player_ids, include_summary=True, return_json=True))
-        return [pd.DataFrame.from_records(json_data, index=['id'], exclude=['history_past', 'history', 'fixtures']).rename(index={'id': 'player_id'}),
-                convert_players_df(json_data, 'history_past', 'season_name'),
-                convert_players_df(json_data, 'history', 'fixture'),
-                convert_players_df(json_data, 'fixtures', 'event')]
+        full_json_data = self.__call_api(lambda fpl: fpl.get_players(player_ids, include_summary=True, return_json=True))
+
+        return [pd.DataFrame.from_records(full_json_data, index=['id'], exclude=['history_past', 'history', 'fixtures']).rename(index={'id': 'player_id'}),
+                convert_players_df(full_json_data, 'history_past', 'season_name'),
+                convert_players_df(full_json_data, 'history', 'fixture'),
+                convert_players_df(full_json_data, 'fixtures', 'event')]
 
     def get_fixtures(self) -> pd.DataFrame:
         """Returns a list of *all* fixtures as data frame.
@@ -210,6 +213,7 @@ class FPLPandas:
         Returns:
             The team, chips, transfer info as a pandas data frame.
         """
+
         async def get_user_team_async(fpl: FPL, user_id: int = None):
             return await fpl.get_user_team(user_id)
 
@@ -230,6 +234,7 @@ class FPLPandas:
         json_data = self.__call_api(lambda fpl: fpl.get_user_info(), requires_login=True)
         self.__user_id = json_data['player']['entry']
         return pd.DataFrame.from_records([json_data['player']])
+
 
 # Extension methods for FPL. These are necessary because FPL does not expose all available data.
 async def __fpl_get_user_team(self, user_id: str) -> dict:
@@ -256,6 +261,7 @@ async def __fpl_get_user_team(self, user_id: str) -> dict:
 
     return response
 
+
 async def __fpl_get_user_info(self) -> dict:
     if not logged_in(self.session):
         raise Exception("User must be logged in.")
@@ -267,6 +273,7 @@ async def __fpl_get_user_info(self) -> dict:
         raise ValueError("User ID does not match provided email address!")
 
     return response
+
 
 # Helper methods
 def _set_index_safe(df: pd.DataFrame, index_columns: list) -> pd.DataFrame:
@@ -280,35 +287,78 @@ def _set_index_safe(df: pd.DataFrame, index_columns: list) -> pd.DataFrame:
     Returns:
         Index data frame is not empty otherwise it returns the original data frame.
     """
-    #if df is None or df.shape[0] == 0:
+    # if df is None or df.shape[0] == 0:
     #    return df
 
     cols = list(df.columns.values)
     return (df
-        .reindex(columns=(cols+[col for col in index_columns if col not in cols]))
-        .set_index(index_columns))
+            .reindex(columns=(cols + [col for col in index_columns if col not in cols]))
+            .set_index(index_columns))
+
 
 # Overriding fpl method for now because it does not return fixtures without game weeks.
 async def __fpl_get_fixtures(self, return_json=False):
-        """Returns a list of *all* fixtures.
+    """Returns a list of *all* fixtures.
 
-        Information is taken from e.g.:
-            https://fantasy.premierleague.com/api/fixtures/
-            https://fantasy.premierleague.com/api/fixtures/?event=1
+    Information is taken from e.g.:
+        https://fantasy.premierleague.com/api/fixtures/
+        https://fantasy.premierleague.com/api/fixtures/?event=1
 
-        :param return_json: (optional) Boolean. If ``True`` returns a list of
-            ``dict``s, if ``False`` returns a list of  :class:`Fixture`
-            objects. Defaults to ``False``.
-        :type return_json: bool
-        :rtype: list
-        """
-        fixtures = await fetch(self.session, API_URLS["fixtures"])
+    :param return_json: (optional) Boolean. If ``True`` returns a list of
+        ``dict``s, if ``False`` returns a list of  :class:`Fixture`
+        objects. Defaults to ``False``.
+    :type return_json: bool
+    :rtype: list
+    """
+    fixtures = await fetch(self.session, API_URLS["fixtures"])
 
-        if return_json:
-            return fixtures
+    if return_json:
+        return fixtures
 
-        return [Fixture(fixture) for fixture in fixtures]
+    return [Fixture(fixture) for fixture in fixtures]
+
+
+@backoff.on_exception(backoff.expo, aiohttp.ClientResponseError, max_tries=8, giveup=lambda e: e.status != 429)
+async def __get_player(self, player_id, players=None, include_summary=False,
+                       return_json=False):
+    """Returns the player with the given ``player_id``.
+
+    Information is taken from e.g.:
+        https://fantasy.premierleague.com/api/bootstrap-static/
+        https://fantasy.premierleague.com/api/element-summary/1/ (optional)
+
+    :param player_id: A player's ID.
+    :type player_id: string or int
+    :param list players: (optional) A list of players.
+    :param bool include_summary: (optional) Includes a player's summary
+        if ``True``.
+    :param return_json: (optional) Boolean. If ``True`` returns a ``dict``,
+        if ``False`` returns a :class:`Player` object. Defaults to
+        ``False``.
+    :rtype: :class:`Player` or ``dict``
+    :raises ValueError: Player with ``player_id`` not found
+    """
+    if not players:
+        players = getattr(self, "elements")
+
+    try:
+        player = next(player for player in players.values()
+                      if player["id"] == player_id)
+    except StopIteration:
+        raise ValueError(f"Player with ID {player_id} not found")
+
+    if include_summary:
+        player_summary = await self.get_player_summary(
+            player["id"], return_json=True)
+        player.update(player_summary)
+
+    if return_json:
+        return player
+
+    return FPL.Player(player, self.session)
+
 
 FPL.get_user_team = __fpl_get_user_team
 FPL.get_user_info = __fpl_get_user_info
 FPL.get_fixtures = __fpl_get_fixtures
+FPL.get_player = __get_player

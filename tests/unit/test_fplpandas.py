@@ -1,6 +1,7 @@
 import unittest
 import unittest.mock as mock
 import asyncio
+import warnings
 from fplpandas import FPLPandas
 import logging as log
 import pandas as pd
@@ -221,9 +222,10 @@ class TestFplPandas(unittest.TestCase):
         fpl_mock = mock.MagicMock()
 
         async def mock_get_players(player_ids, include_summary, return_json):
-            self.assertEqual(player_ids, None)
+            self.assertIsNone(player_ids)
             self.assertEqual(include_summary, True)
             self.assertEqual(return_json, True)
+
             return test_data
 
         fpl_mock.get_players = mock_get_players
@@ -246,7 +248,7 @@ class TestFplPandas(unittest.TestCase):
                           'fixtures': [{'event': 1, 'attr1': 'value11', 'attr2': 'value12'},
                                        {'event': 2, 'attr1': 'value21', 'attr2': 'value22'}]
                       },
-                     {'id': 3, 'attr1': 'value21', 'attr2': 'value22',
+                     {'id': 2, 'attr1': 'value21', 'attr2': 'value22',
                       'history_past': [{'season_name': '2017/18', 'attr1': 'value11', 'attr2': 'value12'},
                                        {'season_name': '2018/19', 'attr1': 'value21', 'attr2': 'value22'}],
                       'history': [{'fixture': 1, 'attr1': 'value11', 'attr2': 'value12'},
@@ -256,19 +258,19 @@ class TestFplPandas(unittest.TestCase):
                       }]
 
         expected_players= [{'id': 1, 'attr1': 'value11', 'attr2': 'value12'},
-                           {'id': 3, 'attr1': 'value21', 'attr2': 'value22'}]
+                           {'id': 2, 'attr1': 'value21', 'attr2': 'value22'}]
         expected_history_past = [{'season_name': '2017/18', 'attr1': 'value11', 'attr2': 'value12', 'player_id': 1},
                                  {'season_name': '2018/19', 'attr1': 'value21', 'attr2': 'value22', 'player_id': 1},
-                                 {'season_name': '2017/18', 'attr1': 'value11', 'attr2': 'value12', 'player_id': 3},
-                                 {'season_name': '2018/19', 'attr1': 'value21', 'attr2': 'value22', 'player_id': 3}]
+                                 {'season_name': '2017/18', 'attr1': 'value11', 'attr2': 'value12', 'player_id': 2},
+                                 {'season_name': '2018/19', 'attr1': 'value21', 'attr2': 'value22', 'player_id': 2}]
         expected_history = [{'fixture': 1, 'attr1': 'value11', 'attr2': 'value12', 'player_id': 1},
                          {'fixture': 2, 'attr1': 'value21', 'attr2': 'value22', 'player_id': 1},
-                            {'fixture': 1, 'attr1': 'value11', 'attr2': 'value12', 'player_id': 3},
-                            {'fixture': 2, 'attr1': 'value21', 'attr2': 'value22', 'player_id': 3}]
+                            {'fixture': 1, 'attr1': 'value11', 'attr2': 'value12', 'player_id': 2},
+                            {'fixture': 2, 'attr1': 'value21', 'attr2': 'value22', 'player_id': 2}]
         expected_fixtures= [{'event': 1, 'attr1': 'value11', 'attr2': 'value12', 'player_id': 1},
                             {'event': 2, 'attr1': 'value21', 'attr2': 'value22', 'player_id': 1},
-                            {'event': 1, 'attr1': 'value11', 'attr2': 'value12', 'player_id': 3},
-                            {'event': 2, 'attr1': 'value21', 'attr2': 'value22', 'player_id': 3}]
+                            {'event': 1, 'attr1': 'value11', 'attr2': 'value12', 'player_id': 2},
+                            {'event': 2, 'attr1': 'value21', 'attr2': 'value22', 'player_id': 2}]
 
         expected_players_df = pd.DataFrame.from_dict(expected_players).set_index('id').rename(index={'id': 'player_id'})
         expected_history_past_df = pd.DataFrame.from_dict(expected_history_past).set_index(['player_id', 'season_name'])
@@ -278,15 +280,17 @@ class TestFplPandas(unittest.TestCase):
         fpl_mock = mock.MagicMock()
 
         async def mock_get_players(player_ids, include_summary, return_json):
-            self.assertEqual(player_ids, [1, 3])
+            self.assertIsNotNone(player_ids)
+            self.assertEqual(player_ids, [1, 2])
             self.assertEqual(include_summary, True)
             self.assertEqual(return_json, True)
+
             return test_data
 
         fpl_mock.get_players = mock_get_players
 
         fpl = FPLPandas(fpl=fpl_mock)
-        actual_players_df, actual_history_past_df, actual_history_df, actual_fixture_df = fpl.get_players([1, 3])
+        actual_players_df, actual_history_past_df, actual_history_df, actual_fixture_df = fpl.get_players([1, 2])
 
         assert_frame_equal(expected_players_df, actual_players_df)
         assert_frame_equal(expected_history_past_df, actual_history_past_df)

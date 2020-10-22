@@ -1,6 +1,6 @@
 from build_deploy import *
 
-unitest()
+unit_test()
 build()
 check()
 install()

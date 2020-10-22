@@ -40,6 +40,8 @@ class TestFplPandas(unittest.TestCase):
         self.assertTrue(fixtures.shape[0] > 0)
 
     def test_get_players(self):
+        warnings.filterwarnings(action='ignore', message='unclosed', category=ResourceWarning)
+
         log.info(f'Downloading data for all players ...')
         with warnings.catch_warnings():
             warnings.filterwarnings("ignore")

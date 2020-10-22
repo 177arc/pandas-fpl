@@ -7,9 +7,13 @@ log.basicConfig(level=log.INFO, format='%(message)s')
 def __execute(command: str):
     return print(shell(command, capture=True, silent=True).stdout)
 
-def unitest():
+def unit_test():
     log.info('Running unit tests ...')
-    __execute('python -m pytest tests/')
+    __execute('python -m pytest tests/unit/')
+
+def int_test():
+    log.info('Running integration tests ...')
+    __execute('python -m pytest tests/integration/')
 
 def install():
     log.info('Installing package locally ...')
