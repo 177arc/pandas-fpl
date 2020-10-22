@@ -1,13 +1,14 @@
-from fpl import FPL
 import aiohttp
 import pandas as pd
 from typing import List
 import asyncio
+import backoff
 from concurrent.futures import ThreadPoolExecutor
-from fpl.utils import fetch, logged_in
+
 from fpl.constants import API_URLS
 from fpl.models.fixture import Fixture
-
+from fpl.utils import fetch, logged_in
+from fpl import FPL
 
 # noinspection PyTypeChecker
 class FPLPandas:
@@ -317,6 +318,47 @@ async def __fpl_get_fixtures(self, return_json=False):
     return [Fixture(fixture) for fixture in fixtures]
 
 
+@backoff.on_exception(backoff.expo, aiohttp.ClientResponseError, max_tries=8, giveup=lambda e: e.status != 429)
+async def __get_player(self, player_id, players=None, include_summary=False,
+                       return_json=False):
+    """Returns the player with the given ``player_id``.
+
+    Information is taken from e.g.:
+        https://fantasy.premierleague.com/api/bootstrap-static/
+        https://fantasy.premierleague.com/api/element-summary/1/ (optional)
+
+    :param player_id: A player's ID.
+    :type player_id: string or int
+    :param list players: (optional) A list of players.
+    :param bool include_summary: (optional) Includes a player's summary
+        if ``True``.
+    :param return_json: (optional) Boolean. If ``True`` returns a ``dict``,
+        if ``False`` returns a :class:`Player` object. Defaults to
+        ``False``.
+    :rtype: :class:`Player` or ``dict``
+    :raises ValueError: Player with ``player_id`` not found
+    """
+    if not players:
+        players = getattr(self, "elements")
+
+    try:
+        player = next(player for player in players.values()
+                      if player["id"] == player_id)
+    except StopIteration:
+        raise ValueError(f"Player with ID {player_id} not found")
+
+    if include_summary:
+        player_summary = await self.get_player_summary(
+            player["id"], return_json=True)
+        player.update(player_summary)
+
+    if return_json:
+        return player
+
+    return FPL.Player(player, self.session)
+
+
 FPL.get_user_team = __fpl_get_user_team
 FPL.get_user_info = __fpl_get_user_info
 FPL.get_fixtures = __fpl_get_fixtures
+FPL.get_player = __get_player
